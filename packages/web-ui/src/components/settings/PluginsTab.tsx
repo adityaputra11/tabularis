@@ -281,7 +281,7 @@ function VersionDropdown({
                         }}
                         role="listbox"
                         aria-label={label}
-                        className="custom-scrollbar fixed z-[200] flex flex-col overflow-y-auto overscroll-contain rounded-lg border border-strong bg-elevated py-1 shadow-xl"
+                        className="custom-scrollbar fixed z-[200] flex flex-col overflow-y-auto overscroll-contain rounded-lg border border-strong bg-elevated py-1"
                     >
                         {options.map((opt, index) => {
                             const isSelected = opt.version === value;
@@ -1271,7 +1271,7 @@ export function PluginsTab({onOpenPluginSettings, onPluginsChanged}: PluginsTabP
             <div className="space-y-8">
                 {/* Overview panel: identity + toolbar on top, metric tiles below.
             The tiles double as filter shortcuts for the list further down. */}
-                <div className="rounded-2xl border border-strong bg-elevated overflow-hidden">
+                <div className="rounded-md border border-strong bg-elevated overflow-hidden">
                     <div className="p-5 border-b border-default bg-surface-secondary/50">
                         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <div className="flex items-center gap-3 min-w-0">
@@ -1384,7 +1384,7 @@ export function PluginsTab({onOpenPluginSettings, onPluginsChanged}: PluginsTabP
                                 placeholder={t('settings.plugins.searchPlaceholder')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-44 rounded-lg border border-default bg-base py-1.5 pl-7 pr-3 text-xs text-primary placeholder:text-muted transition-all focus:w-56 focus:border-focus focus:outline-none"
+                                className="w-44 rounded-sm border border-default bg-input h-[26px] py-0 pl-7 pr-3 text-xs text-primary placeholder:text-muted transition-all focus:w-56 focus:border-focus focus:outline-none"
                             />
                         </div>
                     </div>

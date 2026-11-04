@@ -49,7 +49,7 @@ const DB_STATUS_POLL_RUNNING_MS = 2_000;
 const DB_STATUS_POLL_IDLE_MS = 15_000;
 
 const textInputClass =
-    'w-64 px-3 py-2 bg-base border border-strong rounded-lg text-sm text-primary placeholder:text-muted focus:border-focus focus:outline-none transition-colors';
+    'w-64 px-3 h-[26px] py-0 bg-input border border-strong rounded-sm text-xs text-primary placeholder:text-muted focus:border-focus focus:outline-none transition-colors';
 
 const DEFAULT_PLAN: DatabaseBackupPlan = {
     enabled: false,
@@ -724,7 +724,7 @@ export function BackupTab() {
                                 });
                             }}
                             aria-label={t('settings.backup.dbBackupConnection')}
-                            className="w-64 px-3 py-2 bg-base border border-strong rounded-lg text-sm text-primary focus:border-focus focus:outline-none transition-colors"
+                            className="w-64 px-3 h-[26px] py-0 bg-input border border-strong rounded-sm text-xs text-primary focus:border-focus focus:outline-none transition-colors"
                         >
                             <option value="">
                                 {t('settings.backup.dbBackupSelectConnectionPlaceholder')}
@@ -843,7 +843,7 @@ export function BackupTab() {
                         value={plan.time || '02:00'}
                         onChange={(e) => void updatePlan({time: e.target.value})}
                         aria-label={t('settings.backup.dbBackupTime')}
-                        className="w-40 px-3 py-2 bg-base border border-strong rounded-lg text-sm text-primary font-mono focus:border-focus focus:outline-none transition-colors"
+                        className="w-40 px-3 h-[26px] py-0 bg-input border border-strong rounded-sm text-xs text-primary font-mono focus:border-focus focus:outline-none transition-colors"
                     />
                 </SettingRow>
 
@@ -856,7 +856,7 @@ export function BackupTab() {
                         value={plan.timezone || 'local'}
                         onChange={(e) => void updatePlan({timezone: e.target.value})}
                         aria-label={t('settings.backup.dbBackupTimezone')}
-                        className="w-64 px-3 py-2 bg-base border border-strong rounded-lg text-sm text-primary focus:border-focus focus:outline-none transition-colors"
+                        className="w-64 px-3 h-[26px] py-0 bg-input border border-strong rounded-sm text-xs text-primary focus:border-focus focus:outline-none transition-colors"
                     >
                         <option value="local">
                             {t('settings.backup.dbBackupTimezoneLocal')} (
@@ -1011,7 +1011,7 @@ export function BackupTab() {
                                 !planValidation.isValid ||
                                 !driverCapability.capable
                             }
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-primary hover:bg-accent-primary/90 disabled:opacity-50 text-inverse text-sm transition-colors shadow-sm"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-primary hover:bg-accent-primary/90 disabled:opacity-50 text-inverse text-sm transition-colors"
                         >
                             {isDbBackupActive ? (
                                 <>

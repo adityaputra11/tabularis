@@ -350,7 +350,7 @@ describe('PluginsTab filters and version controls', () => {
                 card('Redis').getByRole('img', {name: 'Driver update available'}).textContent,
             ).toBe('v2.0.0');
             const root = screen.getByText('Redis').closest('div.group');
-            expect(root).toHaveClass('rounded-2xl', 'border-strong');
+            expect(root).toHaveClass('rounded-lg', 'border-default');
             expect(root?.querySelector('.w-11.h-11')).not.toBeNull();
             expect(root?.querySelector("[class*='animate-']")).toBeNull();
         },

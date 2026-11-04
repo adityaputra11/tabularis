@@ -13,6 +13,8 @@ import {
     Rows2,
     AppWindow,
     SquarePlus,
+    Image as ImageIcon,
+    RotateCcw,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import type {ConnectionStatus} from '@/hooks/useConnectionManager';
@@ -20,11 +22,16 @@ import {getConnectionItemClass, getStatusDotClass} from '@/utils/connectionManag
 import {canActivateSplit, canAddToSplit} from '@/utils/connectionLayout';
 import {useConnectionLayoutContext} from '@/hooks/useConnectionLayoutContext';
 import {ContextMenu} from '@/components/ui/ContextMenu';
+import {ConnectionIconImage} from '@/components/ConnectionIconImage';
 import {RailIndicator} from './RailIndicator';
 import type {PluginManifest} from '@/types/plugins';
 import {getConnectionAccent, getConnectionIcon} from '@/utils/driverUI';
 import {useDatabase} from '@/hooks/useDatabase';
+import {useAlert} from '@/hooks/useAlert';
+import {usePlatformCapabilities} from '@/hooks/usePlatformCapabilities';
+import {useTabularisClient} from '@/hooks/useTabularisClient';
 import {isEditorRoute} from '@/routing';
+import type {ConnectionAppearance, IconOverride} from '@/contexts/DatabaseContext';
 
 interface Props {
     connection: ConnectionStatus;
@@ -61,7 +68,10 @@ export const OpenConnectionItem = ({
     dropIndicator = null,
 }: Props) => {
     const {t} = useTranslation();
-    const {connections} = useDatabase();
+    const {connections, loadConnections} = useDatabase();
+    const platform = usePlatformCapabilities();
+    const client = useTabularisClient();
+    const {showAlert} = useAlert();
     const location = useLocation();
     const {isActive, isConnecting, name, database, sshEnabled, error} = connection;
     // The rail indicator marks the current view: a connection "owns" it only in
@@ -69,6 +79,8 @@ export const OpenConnectionItem = ({
     const isCurrentView = isActive && isEditorRoute(location.pathname);
     const savedConnection = connections.find((c) => c.id === connection.id);
     const driverColor = getConnectionAccent(savedConnection, driverManifest);
+    const iconOverride = savedConnection?.appearance?.icon;
+    const currentImagePath = iconOverride?.type === 'image' ? iconOverride.path : null;
     const hasError = !!error;
     const canSplit = canActivateSplit(selectedConnectionIds);
     const {splitView, addConnectionToSplit} = useConnectionLayoutContext();
@@ -79,6 +91,59 @@ export const OpenConnectionItem = ({
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
         setContextMenu({x: e.clientX, y: e.clientY});
+    };
+
+    /** Persists the icon override, keeping the other appearance fields (accent color). */
+    const writeIconOverride = async (icon: IconOverride | undefined) => {
+        if (!savedConnection) return;
+        const next: ConnectionAppearance = {...savedConnection.appearance};
+        if (icon) next.icon = icon;
+        else delete next.icon;
+        // Same payload convention as the connection form: an empty appearance is cleared.
+        const appearance = next.icon || next.accentColor ? next : undefined;
+        await client.call('set_connection_appearance', {id: savedConnection.id, appearance});
+        await loadConnections();
+    };
+
+    /** Best-effort removal of an uploaded icon file that is no longer referenced. */
+    const removeIconFile = (relativePath: string) =>
+        client.call('delete_connection_icon', {relativePath}).catch(() => {});
+
+    const reportLogoError = (e: unknown) => {
+        showAlert(`${t('sidebar.failChangeLogo')}${String(e)}`, {
+            kind: 'error',
+            title: t('common.error'),
+        });
+    };
+
+    const handleChangeLogo = async () => {
+        if (!savedConnection) return;
+        const previousPath = currentImagePath;
+        let stored: string | null = null;
+        try {
+            // Cancelling the picker resolves to null: nothing to persist.
+            stored = await platform.chooseConnectionIcon(savedConnection.id);
+            if (!stored) return;
+            await writeIconOverride({type: 'image', path: stored});
+        } catch (e) {
+            // The new file is orphaned when persisting it failed.
+            if (stored) void removeIconFile(stored);
+            reportLogoError(e);
+            return;
+        }
+        if (previousPath && previousPath !== stored) void removeIconFile(previousPath);
+    };
+
+    const handleResetLogo = async () => {
+        if (!savedConnection) return;
+        const previousPath = currentImagePath;
+        try {
+            await writeIconOverride(undefined);
+        } catch (e) {
+            reportLogoError(e);
+            return;
+        }
+        if (previousPath) void removeIconFile(previousPath);
     };
 
     const handleClick = (e: React.MouseEvent) => {
@@ -136,6 +201,25 @@ export const OpenConnectionItem = ({
             disabled: isActive,
         },
         {separator: true as const},
+        ...(savedConnection
+            ? [
+                  {
+                      label: t('sidebar.changeLogo'),
+                      icon: ImageIcon,
+                      action: handleChangeLogo,
+                  },
+                  ...(iconOverride
+                      ? [
+                            {
+                                label: t('sidebar.resetLogo'),
+                                icon: RotateCcw,
+                                action: handleResetLogo,
+                            },
+                        ]
+                      : []),
+                  {separator: true as const},
+              ]
+            : []),
         {
             label: t('sidebar.copyName'),
             icon: Copy,
@@ -164,20 +248,33 @@ export const OpenConnectionItem = ({
                     onClick={handleClick}
                     onMouseDown={onMoveMouseDown}
                     onContextMenu={handleContextMenu}
-                    className={`flex items-center justify-center w-12 h-12 rounded-lg transition-all relative ${
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all relative ${
                         isSelected
                             ? 'ring-2 ring-accent-primary bg-accent-primary/20 text-accent'
                             : getConnectionItemClass(isActive)
                     }`}
                 >
                     {isConnecting ? (
-                        <Loader2 size={20} className="animate-spin text-accent" />
+                        <Loader2 size={16} className="animate-spin text-accent" />
                     ) : (
                         <div
-                            className="w-11 h-11 rounded-lg flex items-center justify-center text-white shadow-md"
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-md overflow-hidden"
                             style={{backgroundColor: driverColor}}
                         >
-                            {getConnectionIcon(savedConnection, driverManifest, 20)}
+                            {iconOverride?.type === 'image' ? (
+                                // Uploaded logo: fills the tile with a small inset, driver icon as fallback
+                                <ConnectionIconImage
+                                    path={iconOverride.path}
+                                    size={28}
+                                    fallback={getConnectionIcon(
+                                        savedConnection,
+                                        driverManifest,
+                                        16,
+                                    )}
+                                />
+                            ) : (
+                                getConnectionIcon(savedConnection, driverManifest, 16)
+                            )}
                         </div>
                     )}
 

@@ -1,24 +1,20 @@
 import {lazy, Suspense, useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import {useNavigate, useLocation} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
-import {Plug2, Settings, Cpu, PanelLeft, Layers, Star, Clock, BookOpen} from 'lucide-react';
-import {DiscordIcon} from '@/components/icons/DiscordIcon';
-import {usePlatformCapabilities} from '@/hooks/usePlatformCapabilities';
-import {DISCORD_URL} from '@/config/links';
+import {Settings, Cpu, PanelLeft, Layers, Star, Clock, BookOpen} from 'lucide-react';
+import {ConnectionIcon} from '@/components/icons/ExplorerIcons';
 import {useDatabase} from '@/hooks/useDatabase';
 import {useTheme} from '@/hooks/useTheme';
 import {SlotAnchor} from '@/components/ui/SlotAnchor';
 
 // Sub-components
 import {NavItem} from './sidebar/NavItem';
-import {RailIndicator} from './sidebar/RailIndicator';
 import {OpenConnectionItem} from './sidebar/OpenConnectionItem';
 import {ConnectionGroupItem} from './sidebar/ConnectionGroupItem';
 import {ConnectionGroupFolder} from './sidebar/ConnectionGroupFolder';
 import type {SidebarTab} from './ExplorerSidebar';
 import {LoadingState} from '@/components/ui/LoadingState';
 import {PanelDatabaseProvider} from './PanelDatabaseProvider';
-import {DiscordCommunityCallout} from './sidebar/DiscordCommunityCallout';
 
 // Hooks & Utils
 import {useSidebarResize} from '@/hooks/useSidebarResize';
@@ -41,7 +37,6 @@ const ExplorerSidebar = lazy(() =>
 );
 
 export const Sidebar = () => {
-    const platform = usePlatformCapabilities();
     const {t} = useTranslation();
     const updates = useAvailableUpdates();
     const {currentTheme} = useTheme();
@@ -324,11 +319,11 @@ export const Sidebar = () => {
         <div className="flex h-full">
             {/* Primary Navigation Bar (Narrow) */}
             <aside className="w-16 bg-elevated border-r border-default flex flex-col items-center py-4 z-20">
-                <div className="mb-8" title="tabularis">
+                <div className="mb-6" title="tabularis">
                     <img
                         src="/logo.svg"
                         alt="tabularis"
-                        className="w-12 h-12 p-1.5 rounded-2xl mx-auto mb-4 shadow-lg shadow-accent-primary/30"
+                        className="w-9 h-9 p-1 rounded-xl mx-auto mb-4 border border-default"
                         style={{
                             backgroundColor: isDarkTheme
                                 ? currentTheme?.colors?.surface?.secondary || '#334155'
@@ -340,14 +335,14 @@ export const Sidebar = () => {
                 <nav className="flex-1 w-full flex flex-col items-center">
                     <NavItem
                         to="/connections"
-                        icon={Plug2}
+                        icon={ConnectionIcon}
                         label={t('sidebar.connections')}
                         isConnected={!!activeConnectionId}
                     />
 
                     {/* Open connections */}
                     {openConnections.length > 0 && (
-                        <div className="w-full flex flex-col items-center mt-2 pt-2 border-t border-default">
+                        <div className="w-full flex flex-col items-center mt-2 pt-2 border-t border-subtle">
                             {/* Show group item once if there is a split view */}
                             {splitView && (
                                 <div ref={groupRef} className="w-full">
@@ -395,23 +390,7 @@ export const Sidebar = () => {
                     )}
                 </nav>
 
-                <div className="mt-auto">
-                    <div className="relative mb-2">
-                        <button
-                            onClick={() => void platform.openExternalUrl(DISCORD_URL)}
-                            className="flex items-center justify-center w-12 h-12 rounded-lg transition-colors relative group text-secondary hover:bg-surface-secondary hover:text-accent"
-                        >
-                            <RailIndicator isActive={false} className="-left-2" />
-                            <div className="relative">
-                                <DiscordIcon size={24} />
-                            </div>
-                            <span className="absolute left-14 bg-surface-secondary text-primary text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-30 pointer-events-none">
-                                Discord
-                            </span>
-                        </button>
-                        <DiscordCommunityCallout />
-                    </div>
-
+                <div className="mt-auto flex flex-col items-center gap-1.5">
                     <NavItem to="/mcp" icon={Cpu} label={t('sidebar.mcpServer')} />
 
                     <NavItem
@@ -464,7 +443,7 @@ export const Sidebar = () => {
 
             {/* Collapsed Explorer (Icon strip) */}
             {shouldShowExplorer && isExplorerCollapsed && (
-                <div className="w-12 bg-base border-r border-default flex flex-col items-center py-2 gap-1">
+                <div className="w-12 bg-elevated border-r border-default flex flex-col items-center py-2 gap-1">
                     <button
                         onClick={() => setIsExplorerCollapsed(false)}
                         className="text-muted hover:text-secondary hover:bg-surface-secondary rounded-lg p-2 transition-colors group relative"
@@ -506,8 +485,8 @@ export const Sidebar = () => {
                             }}
                             className={`rounded-lg p-2 transition-colors group relative ${
                                 sidebarTab === tab.id
-                                    ? 'text-accent bg-accent-primary/10'
-                                    : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                    ? 'text-accent bg-accent-primary/15'
+                                    : 'text-muted hover:text-secondary hover:bg-surface-hover'
                             }`}
                             title={tab.label}
                         >

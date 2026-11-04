@@ -16,7 +16,7 @@ export function PaginationControls({pagination, isLoading, onPageChange}: Pagina
     const totalPages = totalPageCount(pagination.total_rows, pagination.page_size);
 
     return (
-        <div className="flex items-center gap-1 bg-surface-secondary rounded border border-strong shrink-0">
+        <div className="flex items-center gap-1 bg-surface-secondary rounded-md border border-default shrink-0">
             {/* First/last jump buttons disappear in narrow panes (container query) */}
             <button
                 disabled={isFirstPage || isLoading}

@@ -14,19 +14,22 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import {ResultEntryContent} from './ResultEntryContent';
+import {HiddenColumnsIndicator} from './HiddenColumnsIndicator';
 import type {DataGridCommandTarget} from './DataGrid';
 import {PaginationControls} from './PaginationControls';
 import {ResizeHandle} from '@/components/notebook/ResizeHandle';
 import {formatDuration, formatTimingTooltip} from '@/utils/formatTime';
 import {useTimingLabels} from '@/hooks/useTimingLabels';
+import {useHiddenColumns} from '@/hooks/useHiddenColumns';
 import {onActivationKey} from '@/utils/keyboardEvents';
 import {getEntryDisplayLabel, getStackedGridHeight} from '@/utils/multiResult';
 import type {QueryResultEntry} from '@/types/editor';
+import type {CopyFormat} from '@/utils/clipboard';
 
 interface StackedResultItemProps {
     entry: QueryResultEntry;
     connectionId: string | null;
-    copyFormat: 'csv' | 'json' | 'sql-insert' | 'markdown';
+    copyFormat: CopyFormat;
     csvDelimiter: string;
     csvIncludeHeaders: boolean;
     collapsed: boolean;
@@ -72,6 +75,8 @@ export function StackedResultItem({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const rowCount = entry.result?.rows.length ?? 0;
+    // The grid below hides them; the header shows how many (#1299).
+    const hiddenColumns = useHiddenColumns(entry.id, entry.result?.columns ?? []);
     const autoHeight = entry.result ? getStackedGridHeight(rowCount) : 120;
     const [userHeight, setUserHeight] = useState<number | null>(null);
     const gridHeight = userHeight ?? autoHeight;
@@ -123,7 +128,7 @@ export function StackedResultItem({
                 aria-expanded={!collapsed}
                 className={clsx(
                     '@container flex items-center gap-2 px-3 py-1.5 text-xs select-none group cursor-pointer',
-                    'bg-elevated hover:bg-surface-secondary transition-colors',
+                    'bg-elevated hover:bg-surface-hover transition-colors',
                     'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
                     collapsed && 'border-b-0',
                 )}
@@ -194,7 +199,7 @@ export function StackedResultItem({
                             e.stopPropagation();
                             startEditing();
                         }}
-                        className="p-0.5 rounded-sm hover:bg-surface-secondary text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                        className="p-0.5 rounded-sm hover:bg-surface-hover text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                         title={t('editor.multiResult.rename')}
                     >
                         <Pencil size={10} />
@@ -209,7 +214,7 @@ export function StackedResultItem({
                             onAiRename();
                         }}
                         disabled={aiRenaming}
-                        className="p-0.5 rounded-sm hover:bg-surface-secondary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity disabled:opacity-50"
+                        className="p-0.5 rounded-sm hover:bg-surface-hover shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity disabled:opacity-50"
                         title={
                             aiRenaming
                                 ? t('editor.multiResult.generatingName')
@@ -231,7 +236,7 @@ export function StackedResultItem({
                             e.stopPropagation();
                             onRerun();
                         }}
-                        className="p-0.5 rounded-sm hover:bg-surface-secondary text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                        className="p-0.5 rounded-sm hover:bg-surface-hover text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                         title={t('editor.multiResult.rerun')}
                     >
                         <Play size={10} fill="currentColor" />
@@ -244,7 +249,7 @@ export function StackedResultItem({
                         e.stopPropagation();
                         onClose();
                     }}
-                    className="p-0.5 rounded-sm hover:bg-surface-secondary text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                    className="p-0.5 rounded-sm hover:bg-surface-hover text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                     title={t('editor.multiResult.close')}
                 >
                     <X size={12} />
@@ -256,8 +261,15 @@ export function StackedResultItem({
                 {/* Inline summary when collapsed or always */}
                 {hasResult && (
                     <div className="flex items-center gap-2 min-w-0">
+                        {!collapsed && (
+                            <HiddenColumnsIndicator
+                                columns={entry.result!.columns}
+                                hidden={hiddenColumns.hidden}
+                                onChange={hiddenColumns.setHidden}
+                            />
+                        )}
                         {entry.result!.pagination?.has_more && (
-                            <span className="px-1.5 py-0.5 bg-accent-warning/15 text-accent-warning rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-warning/50 whitespace-nowrap shrink-0">
+                            <span className="px-1.5 py-0.5 bg-accent-primary/15 text-accent rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-primary/50 whitespace-nowrap shrink-0">
                                 {t('editor.autoPaginated')}
                             </span>
                         )}
@@ -306,7 +318,7 @@ export function StackedResultItem({
                         <button
                             type="button"
                             aria-expanded={queryExpanded}
-                            className="w-full text-left bg-surface-secondary border-b border-default px-3 py-1 flex items-start gap-2 cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                            className="w-full text-left bg-elevated hover:bg-surface-hover border-b border-default px-3 py-1 flex items-start gap-2 cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                             onClick={() => setQueryExpanded((v) => !v)}
                         >
                             <Code2

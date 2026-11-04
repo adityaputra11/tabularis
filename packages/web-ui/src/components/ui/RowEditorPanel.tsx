@@ -101,10 +101,10 @@ export const RowEditorPanel = ({
     return (
         <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-default bg-base">
+            <div className="flex items-center justify-between px-3 h-[2.6rem] border-b border-default bg-elevated">
                 <div>
-                    <h2 className="text-lg font-semibold text-primary">{t('rowEditor.title')}</h2>
-                    <p className="text-xs text-secondary mt-0.5">
+                    <h2 className="text-sm font-semibold text-primary">{t('rowEditor.title')}</h2>
+                    <p className="text-xs text-muted">
                         {t('rowEditor.subtitle', {row: rowIndex + 1})}
                     </p>
                 </div>
@@ -138,7 +138,7 @@ export const RowEditorPanel = ({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-secondary hover:text-primary transition-colors"
+                        className="text-muted hover:text-primary transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -146,7 +146,7 @@ export const RowEditorPanel = ({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-3 space-y-4">
                 {columns.map((column) => {
                     const value = editedData[column.name];
                     const isGenerated = column.isGenerated ?? false;
@@ -159,7 +159,7 @@ export const RowEditorPanel = ({
                                 fieldRefs.current[column.name] = el;
                             }}
                         >
-                            <label className="block text-xs font-bold text-muted">
+                            <label className="block text-xs font-semibold uppercase tracking-wide text-muted">
                                 {column.name}
                                 {column.type && (
                                     <span className="ml-2 normal-case font-normal">

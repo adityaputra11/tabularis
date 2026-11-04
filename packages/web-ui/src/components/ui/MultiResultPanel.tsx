@@ -40,13 +40,14 @@ import {
 } from '@/utils/multiResult';
 import {useSettings} from '@/hooks/useSettings';
 import type {QueryResultEntry} from '@/types/editor';
+import type {CopyFormat} from '@/utils/clipboard';
 
 interface MultiResultPanelProps {
     results: QueryResultEntry[];
     activeResultId: string | undefined;
     tabId: string;
     connectionId: string | null;
-    copyFormat: 'csv' | 'json' | 'sql-insert' | 'markdown';
+    copyFormat: CopyFormat;
     csvDelimiter: string;
     csvIncludeHeaders: boolean;
     onSelectResult: (entryId: string) => void;
@@ -136,7 +137,7 @@ function ResultTab({
                 'flex items-center gap-2 px-3 h-full border-r border-default cursor-pointer min-w-[120px] max-w-[220px] text-xs transition-all group relative select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
                 isActive
                     ? 'bg-base text-primary font-medium'
-                    : 'text-muted hover:bg-surface-secondary hover:text-secondary',
+                    : 'text-muted hover:bg-surface-hover hover:text-secondary',
             )}
         >
             {/* Active indicator — top bar */}
@@ -205,7 +206,7 @@ function ResultTab({
                             ? t('editor.multiResult.generatingName')
                             : t('editor.multiResult.aiGenerateName')
                     }
-                    className="p-0.5 rounded-sm hover:bg-surface-secondary transition-opacity shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-50"
+                    className="p-0.5 rounded-sm hover:bg-surface-hover transition-opacity shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-50"
                     title={
                         aiRenaming
                             ? t('editor.multiResult.generatingName')
@@ -228,7 +229,7 @@ function ResultTab({
                         onRerun();
                     }}
                     aria-label={t('editor.multiResult.rerun')}
-                    className="p-0.5 rounded-sm hover:bg-surface-secondary transition-opacity shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    className="p-0.5 rounded-sm hover:bg-surface-hover transition-opacity shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
                     title={t('editor.multiResult.rerun')}
                 >
                     <Play size={10} fill="currentColor" />
@@ -243,7 +244,7 @@ function ResultTab({
                 }}
                 aria-label={t('editor.multiResult.close')}
                 className={clsx(
-                    'p-0.5 rounded-sm hover:bg-surface-secondary transition-opacity shrink-0',
+                    'p-0.5 rounded-sm hover:bg-surface-hover transition-opacity shrink-0',
                     isActive
                         ? 'opacity-100'
                         : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
@@ -375,7 +376,7 @@ export function MultiResultPanel({
     const viewToggle = results.length > 1 && (
         <button
             onClick={() => setViewMode((v) => (v === 'tabs' ? 'stacked' : 'tabs'))}
-            className="flex items-center justify-center w-8 h-full text-muted border-l border-default shrink-0 transition-colors hover:text-primary hover:bg-surface-secondary"
+            className="flex items-center justify-center w-8 h-full text-muted border-l border-default shrink-0 transition-colors hover:text-primary hover:bg-surface-hover"
             title={
                 viewMode === 'tabs'
                     ? t('editor.multiResult.viewStacked')
@@ -391,7 +392,7 @@ export function MultiResultPanel({
     // count shows how many statements are still running. The elapsed time ticks
     // up live while running, then snaps to the precise server-measured total.
     const summaryBadge = (succeeded > 0 || failed > 0 || pending > 0) && (
-        <div className="flex items-center gap-2 px-3 h-full text-[10px] text-muted border-l border-default shrink-0">
+        <div className="flex items-center gap-2 px-3 h-full text-[11px] text-muted border-l border-default shrink-0">
             <span>
                 {succeeded > 0 && (
                     <span className="text-accent-success">
@@ -427,18 +428,18 @@ export function MultiResultPanel({
             {viewMode === 'tabs' ? (
                 <>
                     {/* Tab bar */}
-                    <div className="flex items-center bg-elevated border-b border-default h-9 shrink-0">
+                    <div className="flex items-center bg-elevated border-b border-default h-[2.6rem] shrink-0">
                         <button
                             onClick={() => scrollTabs('left')}
                             disabled={!canScrollLeft}
-                            className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-secondary"
+                            className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-hover"
                         >
                             <ChevronLeft size={14} />
                         </button>
                         <button
                             onClick={() => scrollTabs('right')}
                             disabled={!canScrollRight}
-                            className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-secondary"
+                            className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-hover"
                         >
                             <ChevronRight size={14} />
                         </button>
@@ -480,7 +481,7 @@ export function MultiResultPanel({
                         <button
                             type="button"
                             aria-expanded={queryExpanded}
-                            className="w-full text-left bg-surface-secondary border-b border-default px-3 py-1.5 flex items-start gap-2 cursor-pointer select-none group/qp focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                            className="w-full text-left bg-elevated border-b border-default px-3 py-1.5 flex items-start gap-2 cursor-pointer select-none group/qp focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                             onClick={() => setQueryExpanded((v) => !v)}
                         >
                             <Code2
@@ -529,7 +530,7 @@ export function MultiResultPanel({
             ) : (
                 <>
                     {/* Stacked header */}
-                    <div className="flex items-center bg-elevated border-b border-default h-9 shrink-0">
+                    <div className="flex items-center bg-elevated border-b border-default h-[2.6rem] shrink-0">
                         <div className="flex items-center gap-2 px-3 flex-1 text-xs text-secondary">
                             <Database size={12} className="text-muted shrink-0" />
                             <span className="font-medium text-primary">
@@ -546,7 +547,7 @@ export function MultiResultPanel({
                                     allCollapsed ? new Set() : new Set(results.map((r) => r.id)),
                                 );
                             }}
-                            className="flex items-center justify-center w-8 h-full text-muted border-l border-default shrink-0 transition-colors hover:text-primary hover:bg-surface-secondary"
+                            className="flex items-center justify-center w-8 h-full text-muted border-l border-default shrink-0 transition-colors hover:text-primary hover:bg-surface-hover"
                             title={
                                 collapsedIds.size === results.length
                                     ? t('editor.multiResult.expandAll')

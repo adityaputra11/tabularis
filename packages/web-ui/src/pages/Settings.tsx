@@ -218,11 +218,11 @@ export const Settings = () => {
                                 <button
                                     onClick={() => setRequestedTab(id)}
                                     className={clsx(
-                                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left',
+                                        'w-full flex items-center gap-3 px-3 py-1.5 rounded-sm text-sm font-medium transition-colors text-left border-b-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                                         activeTab === id ||
                                             (id === 'plugins' && activePluginId !== null)
-                                            ? 'bg-surface-secondary text-primary'
-                                            : 'text-muted hover:text-primary hover:bg-surface-secondary/50',
+                                            ? 'border-accent-primary text-primary'
+                                            : 'border-transparent text-muted hover:text-primary hover:border-strong',
                                     )}
                                 >
                                     <Icon size={16} />
@@ -253,10 +253,10 @@ export const Settings = () => {
                                                 key={plugin.id}
                                                 onClick={() => setRequestedTab(pluginTabId)}
                                                 className={clsx(
-                                                    'w-full px-3 py-1.5 rounded-lg text-xs text-left transition-colors truncate',
+                                                    'w-full px-3 py-1 rounded-sm text-xs text-left transition-colors truncate border-b-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                                                     activeTab === pluginTabId
-                                                        ? 'bg-surface-secondary text-primary'
-                                                        : 'text-muted hover:text-primary hover:bg-surface-secondary/50',
+                                                        ? 'border-accent-primary text-primary'
+                                                        : 'border-transparent text-muted hover:text-primary hover:border-strong',
                                                 )}
                                                 title={plugin.name}
                                             >
@@ -274,7 +274,7 @@ export const Settings = () => {
                 <div className="p-2 border-t border-default">
                     <button
                         onClick={() => setIsConfigJsonModalOpen(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted hover:text-primary hover:bg-surface-secondary/50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs text-muted hover:text-primary hover:bg-surface-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
                         <FileJson size={14} />
                         {t('settings.editConfigJson')}

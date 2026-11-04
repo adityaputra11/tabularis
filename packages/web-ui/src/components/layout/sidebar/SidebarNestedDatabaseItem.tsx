@@ -4,7 +4,6 @@ import {
     Loader2,
     ChevronDown,
     ChevronRight,
-    Database,
     RefreshCw,
     Check,
     CheckSquare,
@@ -14,6 +13,7 @@ import {
     Upload,
     Network,
 } from 'lucide-react';
+import {DatabaseDotsIcon} from '@/components/icons/ExplorerIcons';
 import {SidebarSchemaItem} from './SidebarSchemaItem';
 import type {NestedDatabaseData, RoutineInfo, TriggerInfo} from '@/contexts/DatabaseContext';
 import type {TableColumn} from '@/types/schema';
@@ -148,7 +148,7 @@ export const SidebarNestedDatabaseItem = ({
                 role="button"
                 tabIndex={0}
                 aria-expanded={isExpanded}
-                className="flex items-center justify-between px-2 py-1.5 group/db cursor-pointer hover:bg-surface-secondary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="flex items-center justify-between h-[1.6rem] px-2 rounded-sm group/db cursor-pointer hover:bg-surface-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 onClick={handleToggle}
                 onKeyDown={onActivationKey(handleToggle)}
             >
@@ -158,7 +158,7 @@ export const SidebarNestedDatabaseItem = ({
                     ) : (
                         <ChevronRight size={14} className="text-muted shrink-0" />
                     )}
-                    <Database size={14} className="text-accent shrink-0" />
+                    <DatabaseDotsIcon size={14} className="text-accent shrink-0" />
                     <span className="text-sm font-medium text-secondary truncate">
                         {databaseName}
                     </span>
@@ -171,7 +171,7 @@ export const SidebarNestedDatabaseItem = ({
                                     e.stopPropagation();
                                     onImport(databaseName, activeSchema ?? 'public');
                                 }}
-                                className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                 title={t('dump.importDatabase')}
                                 aria-label={t('dump.importDatabase')}
                             >
@@ -184,7 +184,7 @@ export const SidebarNestedDatabaseItem = ({
                                     e.stopPropagation();
                                     onDump(databaseName, activeSchema ?? 'public');
                                 }}
-                                className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                 title={t('dump.dumpDatabase')}
                                 aria-label={t('dump.dumpDatabase')}
                             >
@@ -197,7 +197,7 @@ export const SidebarNestedDatabaseItem = ({
                                     e.stopPropagation();
                                     onViewERDiagram(databaseName, activeSchema ?? undefined);
                                 }}
-                                className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                 title={t('sidebar.viewERDiagram')}
                                 aria-label={t('sidebar.viewERDiagram')}
                             >
@@ -209,7 +209,7 @@ export const SidebarNestedDatabaseItem = ({
                                 e.stopPropagation();
                                 onLoadSchemas(databaseName, true);
                             }}
-                            className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors mr-3"
+                            className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors mr-3"
                             title={t('sidebar.refreshTables') || 'Refresh'}
                             aria-label={t('sidebar.refreshTables') || 'Refresh'}
                         >
@@ -221,7 +221,7 @@ export const SidebarNestedDatabaseItem = ({
 
             {/* Database contents */}
             {isExpanded && (
-                <div className="ml-3 border-l border-default">
+                <div className="ml-3 border-l border-subtle">
                     {isLoadingSchemas ? (
                         <div className="flex items-center gap-2 p-2 text-xs text-muted">
                             <Loader2 size={12} className="animate-spin" />
@@ -253,8 +253,8 @@ export const SidebarNestedDatabaseItem = ({
                                                 }}
                                                 className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                     isSelected
-                                                        ? 'text-primary hover:bg-surface-secondary'
-                                                        : 'text-muted hover:bg-surface-secondary'
+                                                        ? 'text-primary hover:bg-surface-hover'
+                                                        : 'text-muted hover:bg-surface-hover'
                                                 }`}
                                             >
                                                 <div
@@ -330,7 +330,7 @@ export const SidebarNestedDatabaseItem = ({
                                         className={`p-1 rounded transition-colors mr-1.5 ${
                                             selectedSchemas.length < schemas.length
                                                 ? 'text-accent bg-accent-primary/10'
-                                                : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                                : 'text-muted hover:text-secondary hover:bg-surface-hover'
                                         }`}
                                         title={t('sidebar.editSchemas')}
                                     >
@@ -393,8 +393,8 @@ export const SidebarNestedDatabaseItem = ({
                                                                 }}
                                                                 className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                     isSelected
-                                                                        ? 'text-primary hover:bg-surface-secondary'
-                                                                        : 'text-muted hover:bg-surface-secondary'
+                                                                        ? 'text-primary hover:bg-surface-hover'
+                                                                        : 'text-muted hover:bg-surface-hover'
                                                                 }`}
                                                             >
                                                                 <div

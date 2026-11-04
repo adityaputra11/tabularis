@@ -97,12 +97,12 @@ const MenuRow = ({
             }}
             disabled={item.disabled}
             className={`
-        w-full text-left pr-3 py-2 text-sm flex items-center gap-2
+        w-full text-left pr-3 py-1.5 text-sm flex items-center gap-2
         ${depth === 0 ? 'pl-3' : 'pl-0'}
         ${
             item.disabled
                 ? 'text-muted/50 cursor-not-allowed'
-                : `hover:bg-surface-tertiary ${item.danger ? 'text-accent-error' : 'text-primary'}`
+                : `hover:bg-surface-hover ${item.danger ? 'text-accent-error' : 'text-primary'}`
         }
       `}
         >
@@ -124,7 +124,7 @@ const MenuRow = ({
                 </span>
             )}
             {item.badge !== undefined ? (
-                <span className="shrink-0 min-w-[3.25rem] px-1 py-px rounded border border-default bg-surface-tertiary text-center font-mono text-[11px] font-semibold leading-4 text-accent [font-variant-ligatures:none]">
+                <span className="shrink-0 min-w-[3.25rem] px-1 py-px rounded-sm border border-default bg-surface-tertiary text-center font-mono text-[11px] font-semibold leading-4 text-accent [font-variant-ligatures:none]">
                     {item.badge}
                 </span>
             ) : (
@@ -257,11 +257,11 @@ const SubmenuRow = ({
                     }
                 }}
                 className={`
-          w-full text-left pl-3 pr-2 py-2 text-sm flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus
+          w-full text-left pl-3 pr-2 py-1.5 text-sm flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus
           ${
               item.disabled
                   ? 'text-muted/50 cursor-not-allowed'
-                  : `text-primary ${open ? 'bg-surface-tertiary' : 'hover:bg-surface-tertiary'}`
+                  : `text-primary ${open ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`
           }
         `}
             >
@@ -281,7 +281,7 @@ const SubmenuRow = ({
                     style={{top: offsetY}}
                     className={`
             absolute z-50 min-w-[180px] max-h-[60vh] overflow-y-auto
-            bg-surface-secondary border border-strong rounded-lg shadow-xl py-1
+            bg-surface-secondary border border-default rounded-lg shadow-lg py-1
             animate-in fade-in zoom-in-95 duration-100
             ${openLeft ? 'right-full mr-1 origin-top-right' : 'left-full ml-1 origin-top-left'}
           `}
@@ -374,7 +374,7 @@ export const ContextMenu = ({x, y, items, onClose, children, boundaryRight}: Con
         <div
             ref={menuRef}
             style={style}
-            className="fixed z-50 min-w-[160px] bg-surface-secondary border border-strong rounded-lg shadow-xl py-1 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-50 min-w-[160px] bg-surface-secondary border border-default rounded-lg shadow-lg py-1 animate-in fade-in zoom-in-95 duration-100"
         >
             {items.map((item, index) => {
                 const key = item.separator

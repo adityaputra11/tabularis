@@ -6,62 +6,62 @@
     "isReadOnly": true,
     "colors": {
       "bg": {
-        "base": "#020617",
-        "elevated": "#0f172a",
-        "overlay": "#1e293b",
-        "input": "#0f172a",
-        "tooltip": "#1e293b"
+        "base": "#090909",
+        "elevated": "#191919",
+        "overlay": "#222222",
+        "input": "#111111",
+        "tooltip": "#222222"
       },
       "surface": {
-        "primary": "#1e293b",
-        "secondary": "#334155",
-        "tertiary": "#475569",
-        "hover": "#334155",
-        "active": "#3b82f6",
-        "disabled": "#1e293b"
+        "primary": "#191919",
+        "secondary": "#222222",
+        "tertiary": "#2a2a2a",
+        "hover": "#2a2a2a",
+        "active": "#3498db",
+        "disabled": "#191919"
       },
       "text": {
-        "primary": "#f8fafc",
-        "secondary": "#abb7c7",
-        "muted": "#a2acbf",
-        "disabled": "#475569",
-        "accent": "#7dacf9",
-        "inverse": "#020617"
+        "primary": "#eeeeee",
+        "secondary": "#b4b4b4",
+        "muted": "#8b8b8b",
+        "disabled": "#606060",
+        "accent": "#75bff7",
+        "inverse": "#090909"
       },
       "accent": {
-        "primary": "#3b82f6",
-        "secondary": "#9063f6",
-        "success": "#22c55e",
-        "warning": "#f59e0b",
-        "error": "#ef4444",
-        "info": "#06b6d4"
+        "primary": "#3498db",
+        "secondary": "#c2a2ff",
+        "success": "#15db95",
+        "warning": "#ff8d21",
+        "error": "#ff5d59",
+        "info": "#3498db"
       },
       "border": {
-        "subtle": "#1e293b",
-        "default": "#334155",
-        "strong": "#5b6b82",
-        "focus": "#3b82f6"
+        "subtle": "#2a2a2a",
+        "default": "#3a3a3a",
+        "strong": "#484848",
+        "focus": "#3498db"
       },
       "semantic": {
-        "string": "#f87171",
-        "number": "#60a5fa",
-        "boolean": "#a78bfa",
-        "date": "#4ade80",
-        "null": "#718199",
-        "primaryKey": "#fbbf24",
-        "foreignKey": "#22d3ee",
-        "index": "#c084fc",
-        "connectionActive": "#22c55e",
-        "connectionInactive": "#64748b",
-        "modified": "#3b82f6",
-        "deleted": "#ef4444",
-        "new": "#22c55e"
+        "string": "#ffa359",
+        "number": "#75bff7",
+        "boolean": "#ff77fb",
+        "date": "#0ad893",
+        "null": "#8b8b8b",
+        "primaryKey": "#fcda3e",
+        "foreignKey": "#c2a2ff",
+        "index": "#75bff7",
+        "connectionActive": "#15db95",
+        "connectionInactive": "#6e6e6e",
+        "modified": "#3498db",
+        "deleted": "#ff5d59",
+        "new": "#15db95"
       }
     },
     "typography": {
       "fontFamily": {
-        "base": "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-        "mono": "JetBrains Mono, Fira Code, Monaco, Consolas, monospace"
+        "base": "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif",
+        "mono": "ui-monospace, Menlo, Monaco, Cascadia Mono, Segoe UI Mono, Roboto Mono, Consolas, monospace"
       },
       "fontSize": {
         "xs": "0.75rem",
@@ -100,61 +100,61 @@
     "colors": {
       "bg": {
         "base": "#ffffff",
-        "elevated": "#f8fafc",
-        "overlay": "#f1f5f9",
+        "elevated": "#f9f9f9",
+        "overlay": "#f0f0f0",
         "input": "#ffffff",
-        "tooltip": "#f1f5f9"
+        "tooltip": "#f0f0f0"
       },
       "surface": {
-        "primary": "#f1f5f9",
-        "secondary": "#e2e8f0",
-        "tertiary": "#cbd5e1",
-        "hover": "#e2e8f0",
-        "active": "#3b82f6",
-        "disabled": "#f1f5f9"
+        "primary": "#f9f9f9",
+        "secondary": "#f0f0f0",
+        "tertiary": "#e8e8e8",
+        "hover": "#e8e8e8",
+        "active": "#0072b0",
+        "disabled": "#f9f9f9"
       },
       "text": {
-        "primary": "#0f172a",
-        "secondary": "#475569",
-        "muted": "#5b697e",
-        "disabled": "#94a3b8",
-        "accent": "#0b5ee7",
+        "primary": "#202020",
+        "secondary": "#646464",
+        "muted": "#6a6a6a",
+        "disabled": "#bbbbbb",
+        "accent": "#0072b0",
         "inverse": "#ffffff"
       },
       "accent": {
-        "primary": "#1e6ff5",
-        "secondary": "#8250f5",
-        "success": "#17843f",
-        "warning": "#a06707",
-        "error": "#e51414",
-        "info": "#047e92"
+        "primary": "#0072b0",
+        "secondary": "#7939d4",
+        "success": "#00834f",
+        "warning": "#a84f00",
+        "error": "#d43336",
+        "info": "#0077b8"
       },
       "border": {
-        "subtle": "#f1f5f9",
-        "default": "#e2e8f0",
-        "strong": "#cbd5e1",
-        "focus": "#3b82f6"
+        "subtle": "#e8e8e8",
+        "default": "#d9d9d9",
+        "strong": "#cecece",
+        "focus": "#2e8bca"
       },
       "semantic": {
-        "string": "#dc2626",
-        "number": "#2563eb",
-        "boolean": "#7c3aed",
-        "date": "#12853c",
-        "null": "#64748b",
-        "primaryKey": "#ae5f05",
-        "foreignKey": "#077d9a",
-        "index": "#9333ea",
-        "connectionActive": "#22c55e",
-        "connectionInactive": "#64748b",
-        "modified": "#186bf4",
-        "deleted": "#e51414",
-        "new": "#17843f"
+        "string": "#a84f00",
+        "number": "#0077b8",
+        "boolean": "#c400b8",
+        "date": "#00834f",
+        "null": "#6a6a6a",
+        "primaryKey": "#7a6500",
+        "foreignKey": "#7939d4",
+        "index": "#0077b8",
+        "connectionActive": "#00834f",
+        "connectionInactive": "#8d8d8d",
+        "modified": "#0077b8",
+        "deleted": "#d43336",
+        "new": "#00834f"
       }
     },
     "typography": {
       "fontFamily": {
-        "base": "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-        "mono": "JetBrains Mono, Fira Code, Monaco, Consolas, monospace"
+        "base": "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif",
+        "mono": "ui-monospace, Menlo, Monaco, Cascadia Mono, Segoe UI Mono, Roboto Mono, Consolas, monospace"
       },
       "fontSize": {
         "xs": "0.75rem",

@@ -103,7 +103,7 @@ export const ConfirmModal = ({
                 aria-labelledby={titleId}
                 aria-describedby={messageId}
                 aria-busy={busy || undefined}
-                className="bg-elevated border border-strong rounded-xl shadow-2xl w-[480px] overflow-hidden flex flex-col"
+                className="bg-elevated border border-default rounded-lg shadow-lg w-[480px] overflow-hidden flex flex-col"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-default bg-base">

@@ -1,4 +1,5 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
+import {useScrollbarReveal} from '@/hooks/useScrollbarReveal';
 import {copyTextToClipboard} from '@/utils/clipboard';
 import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
@@ -7,7 +8,6 @@ import {buildDropTableSql} from '@/utils/dropTable';
 import {formatObjectNameForCopy, type ObjectNameCopyFormat} from '@/utils/objectNameCopy';
 import {isPostgresDriver, triggerFunctionName} from '@/utils/triggerSql';
 import {
-    Database,
     Plus,
     FileCode,
     Play,
@@ -45,7 +45,11 @@ import {
     FolderPlus,
     Pencil,
     FolderInput,
+    Pin,
+    PinOff,
+    History,
 } from 'lucide-react';
+import {DatabaseDotsIcon} from '@/components/icons/ExplorerIcons';
 import {bindPlatformConfirm} from '@/platform/dialogs';
 import {saveSqlFile} from '@/utils/sqlFileTransfer';
 import {toErrorMessage} from '@/utils/errors';
@@ -74,6 +78,7 @@ import {CreateTableModal} from '@/components/modals/CreateTableModal';
 import {QueryModal} from '@/components/modals/QueryModal';
 import {SavedQueryFolderModal} from '@/components/modals/SavedQueryFolderModal';
 import {MoveSavedQueryModal} from '@/components/modals/MoveSavedQueryModal';
+import {SavedQueryHistoryModal} from '@/components/modals/SavedQueryHistoryModal';
 import {ModifyColumnModal} from '@/components/modals/ModifyColumnModal';
 import {SchemaObjectDetailsModal} from '@/components/modals/SchemaObjectDetailsModal';
 import type {SchemaObjectDetails} from '@/types/schemaObjectDetails';
@@ -102,6 +107,9 @@ import {SidebarDatabaseItem} from './sidebar/SidebarDatabaseItem';
 import {SidebarNestedDatabaseItem} from './sidebar/SidebarNestedDatabaseItem';
 import {SidebarTriggerItem} from './sidebar/SidebarTriggerItem';
 import {QueryHistorySection} from './sidebar/QueryHistorySection';
+import {SidebarPinnedGroup} from './sidebar/SidebarPinnedGroup';
+import {useExplorerPins} from '@/hooks/useExplorerPins';
+import {resolvePins, type PinnedObject} from '@/utils/explorerPins';
 import {NotebooksSection} from './sidebar/NotebooksSection';
 import {
     renameNotebook,
@@ -255,6 +263,8 @@ export const ExplorerSidebar = ({
         renameFolder,
         deleteFolder,
         moveQuery,
+        getQueryVersions,
+        restoreQueryVersion,
     } = useSavedQueries();
     const {
         entries: historyEntries,
@@ -268,6 +278,7 @@ export const ExplorerSidebar = ({
     } = useQueryHistory();
     const {showAlert} = useAlert();
     const {showToast} = useToast();
+    const {pinsFor, isPinned: isObjectPinned, togglePin} = useExplorerPins(activeConnectionId);
     const navigate = useNavigate();
     const objectNavigation = useDatabaseObjectNavigation(
         activeConnectionId,
@@ -275,6 +286,7 @@ export const ExplorerSidebar = ({
     );
     const [schemaVersion, setSchemaVersion] = useState(0);
     const sidebarBodyRef = useRef<HTMLDivElement>(null);
+    const handleBodyScroll = useScrollbarReveal();
     const [schemaErrorExpanded, setSchemaErrorExpanded] = useState(false);
     const {copied: schemaErrorCopied, copy: copySchemaError} = useCopyFeedback(1500);
 
@@ -339,6 +351,7 @@ export const ExplorerSidebar = ({
     const [folderModal, setFolderModal] = useState<{folder: SavedQueryFolder | null} | null>(null);
     const [folderDeleteConfirm, setFolderDeleteConfirm] = useState<SavedQueryFolder | null>(null);
     const [moveQueryTarget, setMoveQueryTarget] = useState<SavedQuery | null>(null);
+    const [historyQueryTarget, setHistoryQueryTarget] = useState<SavedQuery | null>(null);
     const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set());
 
     const exportSavedQueries = async (toExport: SavedQuery[], title: string) => {
@@ -921,10 +934,151 @@ export const ExplorerSidebar = ({
         return () => cancelAnimationFrame(rafId);
     }, [activeTable, activeSchema]);
 
+    const renderFlatTable = (table: (typeof tables)[number]) => (
+        <SidebarTableItem
+            key={table.name}
+            table={table}
+            activeTable={activeTable}
+            onTableClick={handleTableClick}
+            onTableDoubleClick={handleOpenTable}
+            onContextMenu={handleContextMenu}
+            connectionId={activeConnectionId!}
+            driver={activeDriver!}
+            capabilities={activeCapabilities}
+            canManage={supportsManageTables(activeCapabilities)}
+            onAddColumn={(t_name) =>
+                setModifyColumnModal({
+                    isOpen: true,
+                    tableName: t_name,
+                    column: null,
+                })
+            }
+            onEditColumn={(t_name, c) =>
+                setModifyColumnModal({
+                    isOpen: true,
+                    tableName: t_name,
+                    column: c,
+                })
+            }
+            onAddIndex={(t_name) =>
+                setCreateIndexModal({
+                    isOpen: true,
+                    tableName: t_name,
+                })
+            }
+            onDropIndex={async (t_name, name) => {
+                if (
+                    await ask(t('sidebar.deleteIndexConfirm', {name}), {
+                        title: t('sidebar.deleteIndex'),
+                        kind: 'warning',
+                    })
+                ) {
+                    try {
+                        await client.call('drop_index_action', {
+                            connectionId: activeConnectionId!,
+                            table: t_name,
+                            indexName: name,
+                        });
+                        setSchemaVersion((v) => v + 1);
+                    } catch (e) {
+                        showAlert(t('sidebar.failDeleteIndex') + toErrorMessage(e), {
+                            title: t('common.error'),
+                            kind: 'error',
+                        });
+                    }
+                }
+            }}
+            onAddForeignKey={(t_name) =>
+                setCreateForeignKeyModal({
+                    isOpen: true,
+                    tableName: t_name,
+                })
+            }
+            onDropForeignKey={async (t_name, name) => {
+                if (
+                    await ask(t('sidebar.deleteFkConfirm', {name}), {
+                        title: t('sidebar.deleteFk'),
+                        kind: 'warning',
+                    })
+                ) {
+                    try {
+                        await client.call('drop_foreign_key_action', {
+                            connectionId: activeConnectionId!,
+                            table: t_name,
+                            fkName: name,
+                        });
+                        setSchemaVersion((v) => v + 1);
+                    } catch (e) {
+                        showAlert(toErrorMessage(e), {
+                            title: t('common.error'),
+                            kind: 'error',
+                        });
+                    }
+                }
+            }}
+            schemaVersion={schemaVersion}
+        />
+    );
+
+    const renderFlatView = (view: (typeof views)[number]) => (
+        <SidebarViewItem
+            key={view.name}
+            view={view}
+            activeView={activeView}
+            onViewClick={handleViewClick}
+            onViewDoubleClick={handleOpenView}
+            onContextMenu={handleContextMenu}
+            connectionId={activeConnectionId!}
+            driver={activeDriver!}
+            capabilities={activeCapabilities}
+        />
+    );
+
+    // Flat layout (#1306): its items pass neither a schema nor a database, so its pins
+    // use that scope too. The same items render in the Pinned group and in their lists.
+    const renderFlatPinnedGroup = () => {
+        const byName = (object: {name: string}) => object.name;
+        const pinned = pinsFor(undefined, undefined);
+        const pinnedTables = resolvePins(
+            pinned,
+            'table',
+            fuzzyFilter(tables, tableFilter, byName),
+            byName,
+        );
+        const pinnedViews = resolvePins(
+            pinned,
+            'view',
+            fuzzyFilter(views, tableFilter, byName),
+            byName,
+        );
+        if (pinnedTables.length + pinnedViews.length === 0) return null;
+        return (
+            <SidebarPinnedGroup>
+                {pinnedTables.map((table) => renderFlatTable(table))}
+                {pinnedViews.map((view) => renderFlatView(view))}
+            </SidebarPinnedGroup>
+        );
+    };
+
+    // Pin / Unpin in the table and view context menus, scoped like the item's own data.
+    const pinMenuItem = (
+        object: PinnedObject,
+        database?: string | null,
+        schema?: string | null,
+    ) => {
+        const pinned = isObjectPinned(object, database, schema);
+        return {
+            label: pinned ? t('sidebar.unpin') : t('sidebar.pin'),
+            icon: pinned ? PinOff : Pin,
+            disabled: !activeConnectionId,
+            action: () => togglePin(object, database, schema),
+        };
+    };
+
     return (
         <>
             <aside
-                className="bg-base border-r border-default flex flex-col relative shrink-0"
+                className="bg-elevated border-r border-default flex flex-col relative shrink-0"
                 style={{width: sidebarWidth}}
             >
                 {/* Resize Handle */}
@@ -968,9 +1122,9 @@ export const ExplorerSidebar = ({
                     </div>
                 )}
 
-                <div className="p-4 border-b border-default font-semibold text-sm text-primary flex items-center justify-between gap-2">
+                <div className="px-3 py-2 min-h-[2.4rem] border-b border-default font-medium text-sm text-primary flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                        <Database size={16} className="text-accent shrink-0" />
+                        <DatabaseDotsIcon size={16} className="text-accent shrink-0" />
                         <div className="flex flex-col min-w-0">
                             <span>{t('sidebar.explorer')}</span>
                             {activeConnectionName && (
@@ -991,7 +1145,7 @@ export const ExplorerSidebar = ({
                                         onClick={() =>
                                             setIsActionsDropdownOpen(!isActionsDropdownOpen)
                                         }
-                                        className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title={t('sidebar.actions')}
                                     >
                                         <ChevronDown size={16} />
@@ -1003,13 +1157,13 @@ export const ExplorerSidebar = ({
                                                 className="fixed inset-0 z-40"
                                                 onClick={closeActionsDropdown}
                                             />
-                                            <div className="absolute left-0 top-8 bg-elevated border border-default rounded-lg shadow-lg z-40 py-1 min-w-[200px]">
+                                            <div className="absolute left-0 top-8 bg-overlay border border-default rounded-md z-40 py-1 min-w-[200px]">
                                                 <button
                                                     onClick={() => {
                                                         handleImportDatabase();
                                                         setIsActionsDropdownOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                 >
                                                     <Upload
                                                         size={16}
@@ -1024,7 +1178,7 @@ export const ExplorerSidebar = ({
                                                         });
                                                         setIsActionsDropdownOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                 >
                                                     <Download
                                                         size={16}
@@ -1055,11 +1209,11 @@ export const ExplorerSidebar = ({
                                                         }
                                                         setIsActionsDropdownOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                 >
                                                     <Network
                                                         size={16}
-                                                        className="rotate-90 text-accent-warning shrink-0"
+                                                        className="rotate-90 text-accent shrink-0"
                                                     />
                                                     <span>View Schema Diagram</span>
                                                 </button>
@@ -1069,7 +1223,7 @@ export const ExplorerSidebar = ({
                                                             openUserManagement();
                                                             setIsActionsDropdownOpen(false);
                                                         }}
-                                                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                     >
                                                         <UsersRound
                                                             size={16}
@@ -1086,7 +1240,7 @@ export const ExplorerSidebar = ({
                                 <>
                                     <button
                                         onClick={() => handleImportDatabase()}
-                                        className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title={t('dump.importDatabase')}
                                     >
                                         <Upload size={16} />
@@ -1095,7 +1249,7 @@ export const ExplorerSidebar = ({
                                         onClick={() =>
                                             setDumpModal({database: activeDatabaseName ?? ''})
                                         }
-                                        className="text-muted hover:text-accent transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-accent transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title={t('dump.dumpDatabase')}
                                     >
                                         <Download size={16} />
@@ -1117,7 +1271,7 @@ export const ExplorerSidebar = ({
                                                 );
                                             }
                                         }}
-                                        className="text-muted hover:text-accent-warning transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-accent transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title="View Schema Diagram"
                                     >
                                         <Network size={16} className="rotate-90" />
@@ -1125,7 +1279,7 @@ export const ExplorerSidebar = ({
                                     {activeCapabilities?.user_management === true && (
                                         <button
                                             onClick={openUserManagement}
-                                            className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-secondary rounded"
+                                            className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-hover rounded-md"
                                             title={t('userManagement.tabTitle')}
                                         >
                                             <UsersRound size={16} />
@@ -1138,7 +1292,7 @@ export const ExplorerSidebar = ({
                         {isMultiDb && activeCapabilities?.user_management === true && (
                             <button
                                 onClick={openUserManagement}
-                                className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-secondary rounded"
+                                className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-hover rounded-md"
                                 title={t('userManagement.tabTitle')}
                             >
                                 <UsersRound size={16} />
@@ -1146,7 +1300,7 @@ export const ExplorerSidebar = ({
                         )}
                         <button
                             onClick={onCollapse}
-                            className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-secondary rounded"
+                            className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-hover rounded-md"
                             title="Collapse Explorer"
                         >
                             <PanelLeftClose size={16} />
@@ -1155,7 +1309,7 @@ export const ExplorerSidebar = ({
                 </div>
 
                 {/* Tab bar */}
-                <div className="flex items-center border-b border-default bg-base px-1">
+                <div className="flex items-center border-b border-default bg-elevated px-1">
                     {[
                         {id: 'structure' as const, icon: Layers, label: t('sidebar.structure')},
                         {
@@ -1205,7 +1359,11 @@ export const ExplorerSidebar = ({
                     })}
                 </div>
 
-                <div ref={sidebarBodyRef} className="flex-1 overflow-y-auto py-2">
+                <div
+                    ref={sidebarBodyRef}
+                    onScroll={handleBodyScroll}
+                    className="flex-1 overflow-y-auto scrollbar-on-scroll py-2"
+                >
                     {/* Favorites tab */}
                     {sidebarTab === 'favorites' && (
                         <div className="animate-fade-in">
@@ -1269,7 +1427,7 @@ export const ExplorerSidebar = ({
                                             className={`block w-full text-left ${indented ? 'pl-6' : 'pl-3'} pr-3 py-1.5 cursor-pointer group transition-colors border-b border-default/30 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                 selectedFavoriteId === q.id
                                                     ? 'bg-surface-secondary'
-                                                    : 'hover:bg-surface-secondary'
+                                                    : 'hover:bg-surface-hover'
                                             }`}
                                             title={q.database ? `[${q.database}] ${q.sql}` : q.sql}
                                         >
@@ -1289,7 +1447,7 @@ export const ExplorerSidebar = ({
                                                     )}
                                                     {q.database && (
                                                         <span className="flex items-center gap-0.5">
-                                                            <Database
+                                                            <DatabaseDotsIcon
                                                                 size={9}
                                                                 className="shrink-0"
                                                             />
@@ -1333,7 +1491,7 @@ export const ExplorerSidebar = ({
                                         'p-1 rounded text-muted hover:text-primary hover:bg-surface-hover opacity-0 group-hover/folder:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus';
                                     return (
                                         <div key={folder.id}>
-                                            <div className="group/folder flex items-center hover:bg-surface-secondary border-b border-default/30">
+                                            <div className="group/folder flex items-center hover:bg-surface-hover border-b border-default/30">
                                                 <button
                                                     type="button"
                                                     aria-expanded={!isCollapsed}
@@ -1448,7 +1606,7 @@ export const ExplorerSidebar = ({
                                                         setFavoritesFilter(e.target.value)
                                                     }
                                                     placeholder={t('sidebar.searchFavorites')}
-                                                    className="w-full pl-6 pr-2 py-1 text-xs bg-surface-secondary border border-default rounded text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
+                                                    className="w-full h-[26px] pl-7 pr-2 text-xs bg-input border border-default rounded-sm text-primary placeholder:text-muted focus:outline-none focus:border-focus"
                                                 />
                                             </div>
                                             <button
@@ -1456,7 +1614,7 @@ export const ExplorerSidebar = ({
                                                 title={t('sidebar.newFolder')}
                                                 aria-label={t('sidebar.newFolder')}
                                                 onClick={() => setFolderModal({folder: null})}
-                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                                             >
                                                 <FolderPlus size={14} />
                                             </button>
@@ -1471,7 +1629,7 @@ export const ExplorerSidebar = ({
                                                         'saved-queries.sql',
                                                     )
                                                 }
-                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-hover disabled:opacity-40 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                                             >
                                                 <Download size={14} />
                                             </button>
@@ -1485,7 +1643,7 @@ export const ExplorerSidebar = ({
                                         {!isSearching &&
                                             hasFolders &&
                                             folderGroups.unfiled.length > 0 && (
-                                                <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wider border-b border-default/30">
+                                                <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wide border-b border-default/30">
                                                     {t('sidebar.unfiled')}
                                                 </div>
                                             )}
@@ -1497,7 +1655,7 @@ export const ExplorerSidebar = ({
                                               )
                                             : groupedFavorites.map(([groupKey, items]) => (
                                                   <div key={groupKey}>
-                                                      <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wider">
+                                                      <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wide">
                                                           {t(`sidebar.${groupKey}`)}
                                                       </div>
                                                       {items.map((q) =>
@@ -1629,7 +1787,7 @@ export const ExplorerSidebar = ({
                                         {needsSchemaSelection ? (
                                             /* Schema picker (first connect, no saved preference) */
                                             <div className="px-3 py-2">
-                                                <div className="text-xs font-semibold uppercase text-muted tracking-wider mb-2">
+                                                <div className="text-xs font-semibold uppercase text-muted tracking-wide mb-2">
                                                     {t('sidebar.schemas')}
                                                 </div>
                                                 <div className="text-xs text-secondary mb-2">
@@ -1662,8 +1820,8 @@ export const ExplorerSidebar = ({
                                                                     }}
                                                                     className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                         isSelected
-                                                                            ? 'text-primary hover:bg-surface-secondary'
-                                                                            : 'text-muted hover:bg-surface-secondary'
+                                                                            ? 'text-primary hover:bg-surface-hover'
+                                                                            : 'text-muted hover:bg-surface-hover'
                                                                     }`}
                                                                 >
                                                                     <div
@@ -1741,7 +1899,7 @@ export const ExplorerSidebar = ({
                                             <>
                                                 {/* Schema selection header */}
                                                 <div className="flex items-center justify-between px-3 py-1.5">
-                                                    <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                                    <span className="text-xs font-semibold uppercase text-muted tracking-wide">
                                                         {t('sidebar.schemas')} (
                                                         {selectedSchemas.length}/{schemas.length})
                                                     </span>
@@ -1759,7 +1917,7 @@ export const ExplorerSidebar = ({
                                                                 selectedSchemas.length <
                                                                 schemas.length
                                                                     ? 'text-accent bg-accent-primary/10'
-                                                                    : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                                                    : 'text-muted hover:text-secondary hover:bg-surface-hover'
                                                             }`}
                                                             title={t('sidebar.editSchemas')}
                                                         >
@@ -1772,7 +1930,7 @@ export const ExplorerSidebar = ({
                                                                     className="fixed inset-0 z-40"
                                                                     onClick={closeSchemaFilter}
                                                                 />
-                                                                <div className="absolute right-0 top-8 bg-elevated border border-default rounded-lg shadow-lg z-40 py-2 min-w-[200px] max-h-[300px] flex flex-col">
+                                                                <div className="absolute right-0 top-8 bg-overlay border border-default rounded-md z-40 py-2 min-w-[200px] max-h-[300px] flex flex-col">
                                                                     <div className="flex items-center justify-between px-3 pb-2 border-b border-default">
                                                                         <span className="text-xs font-semibold text-secondary">
                                                                             {t(
@@ -1846,8 +2004,8 @@ export const ExplorerSidebar = ({
                                                                                         }}
                                                                                         className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                                             isSelected
-                                                                                                ? 'text-primary hover:bg-surface-secondary'
-                                                                                                : 'text-muted hover:bg-surface-secondary'
+                                                                                                ? 'text-primary hover:bg-surface-hover'
+                                                                                                : 'text-muted hover:bg-surface-hover'
                                                                                         }`}
                                                                                     >
                                                                                         <div
@@ -2116,7 +2274,7 @@ export const ExplorerSidebar = ({
                                     <div>
                                         {/* Database header: label + manage button */}
                                         <div className="flex items-center justify-between px-3 py-1.5">
-                                            <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                            <span className="text-xs font-semibold uppercase text-muted tracking-wide">
                                                 {t('sidebar.databases')} ({selectedDatabases.length}
                                                 )
                                             </span>
@@ -2164,7 +2322,7 @@ export const ExplorerSidebar = ({
                                                                 allAvailableDatabases.length &&
                                                             allAvailableDatabases.length > 0
                                                                 ? 'text-accent bg-accent-primary/10'
-                                                                : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                                                : 'text-muted hover:text-secondary hover:bg-surface-hover'
                                                         }`}
                                                         title={t('sidebar.manageDatabases')}
                                                     >
@@ -2177,7 +2335,7 @@ export const ExplorerSidebar = ({
                                                                 className="fixed inset-0 z-40"
                                                                 onClick={closeDbManager}
                                                             />
-                                                            <div className="absolute right-0 top-8 bg-elevated border border-default rounded-lg shadow-lg z-40 py-2 min-w-[200px] max-h-[320px] flex flex-col">
+                                                            <div className="absolute right-0 top-8 bg-overlay border border-default rounded-md z-40 py-2 min-w-[200px] max-h-[320px] flex flex-col">
                                                                 <div className="flex items-center justify-between px-3 pb-2 border-b border-default">
                                                                     <span className="text-xs font-semibold text-secondary">
                                                                         {t(
@@ -2260,8 +2418,8 @@ export const ExplorerSidebar = ({
                                                                                         }}
                                                                                         className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                                             isSelected
-                                                                                                ? 'text-primary hover:bg-surface-secondary'
-                                                                                                : 'text-muted hover:bg-surface-secondary'
+                                                                                                ? 'text-primary hover:bg-surface-hover'
+                                                                                                : 'text-muted hover:bg-surface-hover'
                                                                                         }`}
                                                                                     >
                                                                                         <div
@@ -2371,7 +2529,7 @@ export const ExplorerSidebar = ({
                                             <div className="relative flex items-center">
                                                 <Search
                                                     size={11}
-                                                    className="absolute left-2 text-muted pointer-events-none"
+                                                    className="absolute left-2.5 text-muted pointer-events-none"
                                                 />
                                                 <input
                                                     autoCorrect="off"
@@ -2382,12 +2540,12 @@ export const ExplorerSidebar = ({
                                                     value={dbFilter}
                                                     onChange={(e) => setDbFilter(e.target.value)}
                                                     placeholder={t('sidebar.filterDatabases')}
-                                                    className="w-full bg-surface-secondary text-xs text-secondary placeholder:text-muted rounded pl-6 pr-6 py-1 border border-default focus:outline-none focus:border-focus/50"
+                                                    className="w-full h-[26px] bg-input text-xs text-secondary placeholder:text-muted rounded-sm pl-7 pr-7 border border-default focus:outline-none focus:border-focus"
                                                 />
                                                 {dbFilter && (
                                                     <button
                                                         onClick={() => setDbFilter('')}
-                                                        className="absolute right-1.5 text-muted hover:text-primary"
+                                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted hover:text-primary hover:bg-surface-hover"
                                                     >
                                                         <X size={11} />
                                                     </button>
@@ -2582,7 +2740,7 @@ export const ExplorerSidebar = ({
                                     /* Nested database -> schema -> table layout (PostgreSQL browsing several databases) */
                                     <div>
                                         <div className="flex items-center justify-between px-3 py-1.5">
-                                            <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                            <span className="text-xs font-semibold uppercase text-muted tracking-wide">
                                                 {t('sidebar.databases')} ({selectedDatabases.length}
                                                 )
                                             </span>
@@ -2592,7 +2750,7 @@ export const ExplorerSidebar = ({
                                             <div className="relative flex items-center">
                                                 <Search
                                                     size={11}
-                                                    className="absolute left-2 text-muted pointer-events-none"
+                                                    className="absolute left-2.5 text-muted pointer-events-none"
                                                 />
                                                 <input
                                                     autoCorrect="off"
@@ -2603,12 +2761,12 @@ export const ExplorerSidebar = ({
                                                     value={dbFilter}
                                                     onChange={(e) => setDbFilter(e.target.value)}
                                                     placeholder={t('sidebar.filterDatabases')}
-                                                    className="w-full bg-surface-secondary text-xs text-secondary placeholder:text-muted rounded pl-6 pr-6 py-1 border border-default focus:outline-none focus:border-focus/50"
+                                                    className="w-full h-[26px] bg-input text-xs text-secondary placeholder:text-muted rounded-sm pl-7 pr-7 border border-default focus:outline-none focus:border-focus"
                                                 />
                                                 {dbFilter && (
                                                     <button
                                                         onClick={() => setDbFilter('')}
-                                                        className="absolute right-1.5 text-muted hover:text-primary"
+                                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted hover:text-primary hover:bg-surface-hover"
                                                     >
                                                         <X size={11} />
                                                     </button>
@@ -2809,7 +2967,7 @@ export const ExplorerSidebar = ({
                                                     : activeDatabaseName;
                                             return dbLabel ? (
                                                 <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-default">
-                                                    <Database
+                                                    <DatabaseDotsIcon
                                                         size={14}
                                                         className="text-accent shrink-0"
                                                     />
@@ -2833,6 +2991,8 @@ export const ExplorerSidebar = ({
                                             </span>
                                         </div>
 
+                                        {renderFlatPinnedGroup()}
+
                                         {/* Tables */}
                                         <Accordion
                                             title={`${t('sidebar.tables')} (${tables.length})`}
@@ -2845,7 +3005,7 @@ export const ExplorerSidebar = ({
                                                             e.stopPropagation();
                                                             if (refreshTables) refreshTables();
                                                         }}
-                                                        className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                        className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                         title={
                                                             t('sidebar.refreshTables') ||
                                                             'Refresh Tables'
@@ -2862,7 +3022,7 @@ export const ExplorerSidebar = ({
                                                                     schema: null,
                                                                 });
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title="Create New Table"
                                                         >
                                                             <Plus size={14} />
@@ -2899,162 +3059,9 @@ export const ExplorerSidebar = ({
                                                             </div>
                                                         ) : (
                                                             <div>
-                                                                {filteredTables.map((table) => (
-                                                                    <SidebarTableItem
-                                                                        key={table.name}
-                                                                        table={table}
-                                                                        activeTable={activeTable}
-                                                                        onTableClick={
-                                                                            handleTableClick
-                                                                        }
-                                                                        onTableDoubleClick={
-                                                                            handleOpenTable
-                                                                        }
-                                                                        onContextMenu={
-                                                                            handleContextMenu
-                                                                        }
-                                                                        connectionId={
-                                                                            activeConnectionId!
-                                                                        }
-                                                                        driver={activeDriver!}
-                                                                        capabilities={
-                                                                            activeCapabilities
-                                                                        }
-                                                                        canManage={supportsManageTables(
-                                                                            activeCapabilities,
-                                                                        )}
-                                                                        onAddColumn={(t_name) =>
-                                                                            setModifyColumnModal({
-                                                                                isOpen: true,
-                                                                                tableName: t_name,
-                                                                                column: null,
-                                                                            })
-                                                                        }
-                                                                        onEditColumn={(t_name, c) =>
-                                                                            setModifyColumnModal({
-                                                                                isOpen: true,
-                                                                                tableName: t_name,
-                                                                                column: c,
-                                                                            })
-                                                                        }
-                                                                        onAddIndex={(t_name) =>
-                                                                            setCreateIndexModal({
-                                                                                isOpen: true,
-                                                                                tableName: t_name,
-                                                                            })
-                                                                        }
-                                                                        onDropIndex={async (
-                                                                            t_name,
-                                                                            name,
-                                                                        ) => {
-                                                                            if (
-                                                                                await ask(
-                                                                                    t(
-                                                                                        'sidebar.deleteIndexConfirm',
-                                                                                        {name},
-                                                                                    ),
-                                                                                    {
-                                                                                        title: t(
-                                                                                            'sidebar.deleteIndex',
-                                                                                        ),
-                                                                                        kind: 'warning',
-                                                                                    },
-                                                                                )
-                                                                            ) {
-                                                                                try {
-                                                                                    await client.call(
-                                                                                        'drop_index_action',
-                                                                                        {
-                                                                                            connectionId:
-                                                                                                activeConnectionId!,
-                                                                                            table: t_name,
-                                                                                            indexName:
-                                                                                                name,
-                                                                                        },
-                                                                                    );
-                                                                                    setSchemaVersion(
-                                                                                        (v) =>
-                                                                                            v + 1,
-                                                                                    );
-                                                                                } catch (e) {
-                                                                                    showAlert(
-                                                                                        t(
-                                                                                            'sidebar.failDeleteIndex',
-                                                                                        ) +
-                                                                                            toErrorMessage(
-                                                                                                e,
-                                                                                            ),
-                                                                                        {
-                                                                                            title: t(
-                                                                                                'common.error',
-                                                                                            ),
-                                                                                            kind: 'error',
-                                                                                        },
-                                                                                    );
-                                                                                }
-                                                                            }
-                                                                        }}
-                                                                        onAddForeignKey={(t_name) =>
-                                                                            setCreateForeignKeyModal(
-                                                                                {
-                                                                                    isOpen: true,
-                                                                                    tableName:
-                                                                                        t_name,
-                                                                                },
-                                                                            )
-                                                                        }
-                                                                        onDropForeignKey={async (
-                                                                            t_name,
-                                                                            name,
-                                                                        ) => {
-                                                                            if (
-                                                                                await ask(
-                                                                                    t(
-                                                                                        'sidebar.deleteFkConfirm',
-                                                                                        {name},
-                                                                                    ),
-                                                                                    {
-                                                                                        title: t(
-                                                                                            'sidebar.deleteFk',
-                                                                                        ),
-                                                                                        kind: 'warning',
-                                                                                    },
-                                                                                )
-                                                                            ) {
-                                                                                try {
-                                                                                    await client.call(
-                                                                                        'drop_foreign_key_action',
-                                                                                        {
-                                                                                            connectionId:
-                                                                                                activeConnectionId!,
-                                                                                            table: t_name,
-                                                                                            fkName: name,
-                                                                                        },
-                                                                                    );
-                                                                                    setSchemaVersion(
-                                                                                        (v) =>
-                                                                                            v + 1,
-                                                                                    );
-                                                                                } catch (e) {
-                                                                                    showAlert(
-                                                                                        toErrorMessage(
-                                                                                            e,
-                                                                                        ),
-                                                                                        {
-                                                                                            title: t(
-                                                                                                'common.error',
-                                                                                            ),
-                                                                                            kind: 'error',
-                                                                                        },
-                                                                                    );
-                                                                                }
-                                                                            }
-                                                                        }}
-                                                                        schemaVersion={
-                                                                            schemaVersion
-                                                                        }
-                                                                    />
-                                                                ))}
+                                                                {filteredTables.map((table) =>
+                                                                    renderFlatTable(table),
+                                                                )}
                                                             </div>
                                                         )}
                                                     </>
@@ -3075,7 +3082,7 @@ export const ExplorerSidebar = ({
                                                                 e.stopPropagation();
                                                                 if (refreshViews) refreshViews();
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.refreshViews') ||
                                                                 'Refresh Views'
@@ -3091,7 +3098,7 @@ export const ExplorerSidebar = ({
                                                                     isNewView: true,
                                                                 });
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.createView') ||
                                                                 'Create New View'
@@ -3108,19 +3115,7 @@ export const ExplorerSidebar = ({
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        {views.map((view) => (
-                                                            <SidebarViewItem
-                                                                key={view.name}
-                                                                view={view}
-                                                                activeView={activeView}
-                                                                onViewClick={handleViewClick}
-                                                                onViewDoubleClick={handleOpenView}
-                                                                onContextMenu={handleContextMenu}
-                                                                connectionId={activeConnectionId!}
-                                                                driver={activeDriver!}
-                                                                capabilities={activeCapabilities}
-                                                            />
-                                                        ))}
+                                                        {views.map((view) => renderFlatView(view))}
                                                     </div>
                                                 )}
                                             </Accordion>
@@ -3142,7 +3137,7 @@ export const ExplorerSidebar = ({
                                                                 if (refreshTriggers)
                                                                     refreshTriggers();
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.refreshTriggers') ||
                                                                 'Refresh Triggers'
@@ -3158,7 +3153,7 @@ export const ExplorerSidebar = ({
                                                                     isNewTrigger: true,
                                                                 });
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.createTrigger') ||
                                                                 'Create New Trigger'
@@ -3174,7 +3169,7 @@ export const ExplorerSidebar = ({
                                                         <div className="relative flex items-center">
                                                             <Search
                                                                 size={11}
-                                                                className="absolute left-2 text-muted pointer-events-none"
+                                                                className="absolute left-2.5 text-muted pointer-events-none"
                                                             />
                                                             <input
                                                                 autoCorrect="off"
@@ -3191,7 +3186,7 @@ export const ExplorerSidebar = ({
                                                                 placeholder={t(
                                                                     'sidebar.filterTriggers',
                                                                 )}
-                                                                className="w-full bg-surface-secondary text-xs text-secondary placeholder:text-muted rounded pl-6 pr-6 py-1 border border-default focus:outline-none focus:border-focus/50"
+                                                                className="w-full h-[26px] bg-input text-xs text-secondary placeholder:text-muted rounded-sm pl-7 pr-7 border border-default focus:outline-none focus:border-focus"
                                                                 onClick={(e) => e.stopPropagation()}
                                                             />
                                                             {triggerFilterFlat && (
@@ -3200,7 +3195,7 @@ export const ExplorerSidebar = ({
                                                                         e.stopPropagation();
                                                                         setTriggerFilterFlat('');
                                                                     }}
-                                                                    className="absolute right-1.5 text-muted hover:text-primary"
+                                                                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted hover:text-primary hover:bg-surface-hover"
                                                                 >
                                                                     <X size={11} />
                                                                 </button>
@@ -3265,7 +3260,7 @@ export const ExplorerSidebar = ({
                                                                 if (refreshRoutines)
                                                                     refreshRoutines();
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.refreshRoutines') ||
                                                                 'Refresh Routines'
@@ -3285,7 +3280,7 @@ export const ExplorerSidebar = ({
                                                                         t('routines.newRoutine'),
                                                                     );
                                                                 }}
-                                                                className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                                className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                                 title={t('routines.newRoutine')}
                                                             >
                                                                 <Plus size={14} />
@@ -3421,6 +3416,11 @@ export const ExplorerSidebar = ({
                                               );
                                           },
                                       },
+                                      pinMenuItem(
+                                          {kind: 'table', name: contextMenu.id},
+                                          ctxDatabase,
+                                          ctxSchema,
+                                      ),
                                       {
                                           label: t('sidebar.newConsole'),
                                           icon: FileCode,
@@ -3862,6 +3862,11 @@ export const ExplorerSidebar = ({
                                                         );
                                                     },
                                                 },
+                                                pinMenuItem(
+                                                    {kind: 'view', name: contextMenu.id},
+                                                    viewCtxDatabase,
+                                                    viewCtxSchema,
+                                                ),
                                                 {
                                                     label: t('sidebar.countRows'),
                                                     icon: Hash,
@@ -3977,6 +3982,11 @@ export const ExplorerSidebar = ({
                                                           );
                                                       },
                                                   },
+                                                  pinMenuItem(
+                                                      {kind: 'view', name: contextMenu.id},
+                                                      mvCtxDatabase,
+                                                      mvCtxSchema,
+                                                  ),
                                                   {
                                                       label: t('sidebar.countRows'),
                                                       icon: Hash,
@@ -4724,6 +4734,20 @@ export const ExplorerSidebar = ({
                                                             },
                                                         },
                                                         {
+                                                            label: t('sidebar.versionHistory'),
+                                                            icon: History,
+                                                            action: () => {
+                                                                if (
+                                                                    contextMenu.data &&
+                                                                    'sql' in contextMenu.data
+                                                                ) {
+                                                                    setHistoryQueryTarget(
+                                                                        contextMenu.data as SavedQuery,
+                                                                    );
+                                                                }
+                                                            },
+                                                        },
+                                                        {
                                                             label: t('sidebar.moveToFolder'),
                                                             icon: FolderInput,
                                                             action: () => {
@@ -4978,6 +5002,14 @@ export const ExplorerSidebar = ({
                 query={moveQueryTarget}
                 folders={folders}
                 onMove={moveQuery}
+            />
+
+            <SavedQueryHistoryModal
+                isOpen={historyQueryTarget !== null}
+                onClose={() => setHistoryQueryTarget(null)}
+                query={historyQueryTarget}
+                loadVersions={getQueryVersions}
+                onRestore={restoreQueryVersion}
             />
 
             <ConfirmModal

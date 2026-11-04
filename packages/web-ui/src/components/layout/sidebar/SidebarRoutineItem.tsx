@@ -97,24 +97,27 @@ export const SidebarRoutineItem = ({
                 }}
                 onContextMenu={handleContextMenu}
                 className={clsx(
-                    'flex items-center gap-1 pl-1 pr-3 py-1.5 text-sm cursor-pointer group select-none transition-colors border-l-2 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
-                    'text-secondary hover:bg-surface-secondary border-transparent hover:text-primary',
+                    'flex items-center gap-1 h-[1.6rem] pl-1 pr-3 text-sm rounded-sm cursor-pointer group select-none transition-colors rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
+                    'text-secondary hover:bg-surface-hover hover:text-primary',
                 )}
             >
                 {/* Decorative chevron: the whole row toggles expansion. */}
                 <span
                     aria-hidden="true"
-                    className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                    className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                 >
                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </span>
-                <Code2 size={14} className="text-muted group-hover:text-accent-warning" />
+                <Code2
+                    size={14}
+                    className="text-accent-success/70 group-hover:text-accent-success"
+                />
                 <span className="truncate flex-1">
                     {routineLabel(routine.name, routine.identity_args)}
                 </span>
             </div>
             {isExpanded && (
-                <div className="ml-[22px] border-l border-default">
+                <div className="ml-[22px] border-l border-subtle">
                     {isLoading ? (
                         <div className="flex items-center gap-2 p-2 text-xs text-muted">
                             <Loader2 size={12} className="animate-spin" />
@@ -124,7 +127,7 @@ export const SidebarRoutineItem = ({
                         <div className="flex flex-col">
                             {parameters.length > 0 ? (
                                 <>
-                                    <div className="flex items-center gap-2 px-2 py-1 text-xs text-muted select-none">
+                                    <div className="flex items-center gap-2 h-[1.6rem] px-2 text-xs text-muted rounded-sm select-none">
                                         <Folder size={12} className="text-accent/70" />
                                         <span>{t('sidebar.parameters')}</span>
                                         {/* mr-3.5 lines the count up with the group counts of
@@ -133,7 +136,7 @@ export const SidebarRoutineItem = ({
                                             {parameters.length}
                                         </span>
                                     </div>
-                                    <div className="ml-4 border-l border-default/50">
+                                    <div className="ml-4 border-l border-subtle">
                                         {parameters.map((param) => {
                                             const mode =
                                                 param.mode ||
@@ -143,7 +146,7 @@ export const SidebarRoutineItem = ({
                                             return (
                                                 <div
                                                     key={`${param.name}-${param.ordinal_position}`}
-                                                    className="flex items-center gap-2 px-3 py-1 text-xs text-secondary hover:bg-surface-secondary hover:text-primary group font-mono"
+                                                    className="flex items-center gap-2 h-[1.6rem] px-3 text-xs rounded-sm text-secondary hover:bg-surface-hover hover:text-primary group font-mono"
                                                     title={`${mode} ${param.name} ${param.data_type}`.trim()}
                                                 >
                                                     <Variable

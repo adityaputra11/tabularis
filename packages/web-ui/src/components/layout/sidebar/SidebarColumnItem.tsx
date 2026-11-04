@@ -98,7 +98,7 @@ export const SidebarColumnItem = ({
         <>
             <div
                 title={column.comment || undefined}
-                className="flex items-center gap-2 px-3 py-1 text-xs text-secondary hover:bg-surface-secondary hover:text-primary cursor-pointer group font-mono"
+                className="flex items-center gap-2 h-[1.6rem] px-3 text-xs rounded-sm text-secondary hover:bg-surface-hover hover:text-primary cursor-pointer group font-mono"
                 onContextMenu={!isView && canManage !== false ? handleContextMenu : undefined}
                 onDoubleClick={!isView && canManage !== false ? () => onEdit(column) : undefined}
             >

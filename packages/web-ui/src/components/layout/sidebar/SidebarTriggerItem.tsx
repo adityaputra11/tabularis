@@ -46,12 +46,12 @@ export const SidebarTriggerItem = ({
             onDoubleClick={() => onDoubleClick(trigger)}
             onContextMenu={handleContextMenu}
             className={clsx(
-                'flex items-center gap-1.5 pl-3 pr-3 py-1.5 text-sm cursor-pointer group select-none transition-colors border-l-2',
-                'text-secondary hover:bg-surface-secondary border-transparent hover:text-primary',
+                'flex items-center gap-1.5 h-[1.6rem] pl-3 pr-3 text-sm rounded-sm cursor-pointer group select-none transition-colors border-l-2',
+                'text-secondary hover:bg-surface-hover hover:text-primary',
             )}
             title={badge || trigger.table_name}
         >
-            <Zap size={13} className="text-muted group-hover:text-accent-warning shrink-0" />
+            <Zap size={13} className="text-muted group-hover:text-accent shrink-0" />
             <span className="truncate flex-1">{trigger.name}</span>
             {badge && (
                 <span className="text-[10px] text-muted font-mono opacity-60 shrink-0">

@@ -1,14 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
-import {
-    Table as TableIcon,
-    Loader2,
-    Folder,
-    Link as LinkIcon,
-    Key,
-    ChevronDown,
-    ChevronRight,
-} from 'lucide-react';
+import {Loader2, Folder, Link as LinkIcon, Key, ChevronDown, ChevronRight} from 'lucide-react';
+import {DotsGridIcon} from '@/components/icons/ExplorerIcons';
 import clsx from 'clsx';
 import {SidebarColumnItem} from './SidebarColumnItem';
 import {SidebarIndexList} from './SidebarIndexList';
@@ -203,10 +196,10 @@ const SidebarTableItemImpl = ({
                 onDoubleClick={() => onTableDoubleClick(table.name)}
                 onContextMenu={(e) => handleContextMenu(e, 'table', table.name)}
                 className={clsx(
-                    'flex items-center gap-1 pl-1 pr-3 py-1.5 text-sm cursor-pointer group select-none transition-colors border-l-2 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
+                    'flex items-center gap-1 h-[1.6rem] pl-1 pr-3 text-sm rounded-sm cursor-pointer group select-none transition-colors rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
                     activeTable === table.name
-                        ? 'bg-[color-mix(in_srgb,var(--accent-primary)_20%,transparent)] text-accent border-focus'
-                        : 'text-secondary hover:bg-surface-secondary border-transparent hover:text-primary',
+                        ? 'bg-accent-primary/15 text-primary'
+                        : 'text-secondary hover:bg-surface-hover hover:text-primary',
                 )}
             >
                 <button
@@ -217,24 +210,20 @@ const SidebarTableItemImpl = ({
                             : t('sidebar.expandTable', {name: table.name})
                     }
                     aria-expanded={isExpanded}
-                    className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                    className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                 >
                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
-                <TableIcon
+                <DotsGridIcon
                     size={14}
-                    className={
-                        activeTable === table.name
-                            ? 'text-accent'
-                            : 'text-muted group-hover:text-accent'
-                    }
+                    className={activeTable === table.name ? 'text-accent' : 'text-accent'}
                 />
                 <span className="truncate flex-1" title={table.comment || undefined}>
                     {table.name}
                 </span>
             </div>
             {isExpanded && (
-                <div className="ml-[22px] border-l border-default">
+                <div className="ml-[22px] border-l border-subtle">
                     {isLoading ? (
                         <div className="flex items-center gap-2 p-2 text-xs text-muted">
                             <Loader2 size={12} className="animate-spin" />
@@ -245,7 +234,7 @@ const SidebarTableItemImpl = ({
                             {/* Columns Folder */}
                             <div className="flex flex-col">
                                 <button
-                                    className="flex items-center gap-2 px-2 py-1 text-xs text-muted hover:text-secondary w-full text-left select-none"
+                                    className="flex items-center gap-2 h-[1.6rem] px-2 text-xs text-muted rounded-sm hover:text-secondary w-full text-left select-none"
                                     aria-expanded={expandColumns}
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -263,7 +252,7 @@ const SidebarTableItemImpl = ({
                                     </span>
                                 </button>
                                 {expandColumns && (
-                                    <div className="ml-4 border-l border-default/50">
+                                    <div className="ml-4 border-l border-subtle">
                                         {columns.map((col) => (
                                             <SidebarColumnItem
                                                 key={col.name}
@@ -287,25 +276,25 @@ const SidebarTableItemImpl = ({
                             {keys.length > 0 && (
                                 <div className="flex flex-col">
                                     <button
-                                        className="flex items-center gap-2 px-2 py-1 text-xs text-muted hover:text-secondary w-full text-left select-none"
+                                        className="flex items-center gap-2 h-[1.6rem] px-2 text-xs text-muted rounded-sm hover:text-secondary w-full text-left select-none"
                                         aria-expanded={expandKeys}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setExpandKeys(!expandKeys);
                                         }}
                                     >
-                                        <Folder size={12} className="text-accent-warning/70" />
+                                        <Folder size={12} className="text-accent/70" />
                                         <span>{t('sidebar.keys')}</span>
                                         <span className="ml-auto text-[10px] opacity-50">
                                             {keys.length}
                                         </span>
                                     </button>
                                     {expandKeys && (
-                                        <div className="ml-4 border-l border-default/50">
+                                        <div className="ml-4 border-l border-subtle">
                                             {keys.map((k) => (
                                                 <div
                                                     key={k.name}
-                                                    className="flex items-center gap-2 px-3 py-1 text-xs text-secondary hover:bg-surface-secondary hover:text-primary cursor-pointer group font-mono"
+                                                    className="flex items-center gap-2 h-[1.6rem] px-3 text-xs rounded-sm text-secondary hover:bg-surface-hover hover:text-primary cursor-pointer group font-mono"
                                                     title={k.columns.join(', ')}
                                                     onContextMenu={(e) => {
                                                         handleContextMenu(e, 'index', k.name);
@@ -332,7 +321,7 @@ const SidebarTableItemImpl = ({
                             {/* Foreign Keys Folder */}
                             <div className="flex flex-col">
                                 <div
-                                    className="flex items-center gap-2 px-2 py-1 text-xs text-muted hover:text-secondary cursor-pointer select-none"
+                                    className="flex items-center gap-2 h-[1.6rem] px-2 text-xs text-muted rounded-sm hover:text-secondary cursor-pointer select-none"
                                     onContextMenu={
                                         canManage !== false
                                             ? (e) =>
@@ -346,13 +335,13 @@ const SidebarTableItemImpl = ({
                                         {foreignKeys.length}
                                     </span>
                                 </div>
-                                <div className="ml-4 border-l border-default/50">
+                                <div className="ml-4 border-l border-subtle">
                                     {Array.from(
                                         new Map(foreignKeys.map((fk) => [fk.name, fk])).values(),
                                     ).map((fk) => (
                                         <div
                                             key={fk.name}
-                                            className="flex items-center gap-2 px-3 py-1 text-xs text-secondary hover:bg-surface-secondary hover:text-primary cursor-pointer group font-mono"
+                                            className="flex items-center gap-2 h-[1.6rem] px-3 text-xs rounded-sm text-secondary hover:bg-surface-hover hover:text-primary cursor-pointer group font-mono"
                                             title={`${fk.column_name} -> ${fk.ref_table}.${fk.ref_column}`}
                                             onContextMenu={(e) =>
                                                 handleContextMenu(e, 'foreign_key', fk.name)

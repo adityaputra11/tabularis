@@ -49,7 +49,7 @@ export function AiDropdownButton({
             {isOpen && (
                 <>
                     <div role="presentation" className="fixed inset-0 z-10" onClick={close} />
-                    <div className="absolute bottom-full mb-1 right-0 z-20 bg-elevated border border-default rounded-lg shadow-lg overflow-hidden min-w-[160px]">
+                    <div className="absolute bottom-full mb-1 right-0 z-20 bg-surface-secondary border border-default rounded-md shadow-lg overflow-hidden min-w-[160px]">
                         <button
                             type="button"
                             onClick={() => {

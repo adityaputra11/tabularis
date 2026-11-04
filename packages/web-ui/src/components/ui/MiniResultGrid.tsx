@@ -81,7 +81,7 @@ export function MiniResultGrid({columns, rows, loading, message}: MiniResultGrid
             <div className="flex-1 overflow-auto" ref={parentRef}>
                 <div className="w-full min-w-max">
                     {/* Header */}
-                    <div className="sticky top-0 z-10 bg-elevated border-b border-strong flex">
+                    <div className="sticky top-0 z-10 bg-base border-b border-default flex">
                         {columns.map((col) => (
                             <button
                                 type="button"
@@ -111,7 +111,7 @@ export function MiniResultGrid({columns, rows, loading, message}: MiniResultGrid
                             return (
                                 <div
                                     key={virtualRow.key}
-                                    className="flex absolute left-0 w-full border-b border-strong/30 hover:bg-surface-secondary/50 transition-colors"
+                                    className="flex absolute left-0 w-full border-b border-subtle hover:bg-surface-hover transition-colors"
                                     style={{
                                         height: `${virtualRow.size}px`,
                                         transform: `translateY(${virtualRow.start}px)`,

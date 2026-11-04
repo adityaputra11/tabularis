@@ -87,7 +87,7 @@ export const ConnectionChips = ({
                 </Chip>
             )}
             {conn.params.k8s_enabled && (
-                <Chip tone="primary" icon={<Shield size={8} />}>
+                <Chip tone="neutral" icon={<Shield size={8} />}>
                     K8s
                 </Chip>
             )}

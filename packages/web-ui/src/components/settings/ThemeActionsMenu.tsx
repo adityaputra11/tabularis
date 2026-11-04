@@ -118,7 +118,7 @@ export function ThemeActionsMenu({
                         tabIndex={-1}
                         aria-label={label}
                         style={position}
-                        className="fixed z-[200] w-64 max-w-[calc(100vw-16px)] max-h-[calc(100vh-16px)] overflow-y-auto rounded-xl border border-strong bg-elevated p-1 shadow-xl"
+                        className="fixed z-[200] w-64 max-w-[calc(100vw-16px)] max-h-[calc(100vh-16px)] overflow-y-auto rounded-md border border-strong bg-elevated p-1"
                         onKeyDown={(event) => {
                             if (event.key === 'Tab') {
                                 close(true);

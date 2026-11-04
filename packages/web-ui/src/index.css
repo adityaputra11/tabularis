@@ -101,9 +101,13 @@
 
 :root {
     /* Typography - Define BEFORE usage */
-    --font-base: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    --font-base:
+        system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        sans-serif;
     --font-size-base: 14px;
-    --font-mono: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    --font-mono:
+        ui-monospace, Menlo, Monaco, 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', Consolas,
+        monospace;
     --font-result: var(--font-mono);
 
     /* Apply immediately */
@@ -112,32 +116,32 @@
     color-scheme: dark;
 
     /* CSS Variables - Default (Tabularis Dark) */
-    --bg-base: #020617;
-    --bg-elevated: #0f172a;
-    --bg-overlay: #1e293b;
-    --bg-input: #0f172a;
-    --bg-tooltip: #1e293b;
+    --bg-base: #090909;
+    --bg-elevated: #191919;
+    --bg-overlay: #222222;
+    --bg-input: #111111;
+    --bg-tooltip: #222222;
 
-    --surface-primary: #1e293b;
-    --surface-secondary: #334155;
-    --surface-tertiary: #475569;
-    --surface-hover: #334155;
-    --surface-active: #3b82f6;
-    --surface-disabled: #1e293b;
+    --surface-primary: #191919;
+    --surface-secondary: #222222;
+    --surface-tertiary: #2a2a2a;
+    --surface-hover: #2a2a2a;
+    --surface-active: #3498db;
+    --surface-disabled: #191919;
 
-    --text-primary: #f8fafc;
-    --text-secondary: #abb7c7;
-    --text-muted: #a2acbf;
-    --text-disabled: #475569;
-    --text-accent: #7dacf9;
-    --text-inverse: #020617;
+    --text-primary: #eeeeee;
+    --text-secondary: #b4b4b4;
+    --text-muted: #8b8b8b;
+    --text-disabled: #606060;
+    --text-accent: #75bff7;
+    --text-inverse: #090909;
 
-    --accent-primary: #3b82f6;
-    --accent-secondary: #9063f6;
-    --accent-success: #22c55e;
-    --accent-warning: #f59e0b;
-    --accent-error: #ef4444;
-    --accent-info: #06b6d4;
+    --accent-primary: #3498db;
+    --accent-secondary: #c2a2ff;
+    --accent-success: #15db95;
+    --accent-warning: #ff8d21;
+    --accent-error: #ff5d59;
+    --accent-info: #3498db;
 
     /* Status colors - derived from the theme accents so every palette,
      light or dark, tints its banners with its own colors. Never hardcode. */
@@ -168,22 +172,22 @@
     --text-on-accent-error: var(--text-inverse);
     --text-on-accent-info: var(--text-inverse);
 
-    --border-subtle: #1e293b;
-    --border-default: #334155;
-    --border-strong: #5b6b82;
-    --border-focus: #3b82f6;
+    --border-subtle: #2a2a2a;
+    --border-default: #3a3a3a;
+    --border-strong: #484848;
+    --border-focus: #3498db;
 
-    --semantic-string: #f87171;
-    --semantic-number: #60a5fa;
-    --semantic-boolean: #a78bfa;
-    --semantic-date: #4ade80;
-    --semantic-null: #718199;
-    --semantic-pk: #fbbf24;
-    --semantic-fk: #22d3ee;
-    --semantic-index: #c084fc;
-    --semantic-modified: #3b82f6;
-    --semantic-deleted: #ef4444;
-    --semantic-new: #22c55e;
+    --semantic-string: #ffa359;
+    --semantic-number: #75bff7;
+    --semantic-boolean: #ff77fb;
+    --semantic-date: #0ad893;
+    --semantic-null: #8b8b8b;
+    --semantic-pk: #fcda3e;
+    --semantic-fk: #c2a2ff;
+    --semantic-index: #75bff7;
+    --semantic-modified: #3498db;
+    --semantic-deleted: #ff5d59;
+    --semantic-new: #15db95;
 
     --radius-sm: 0.25rem;
     --radius-base: 0.5rem;
@@ -624,6 +628,25 @@ select option:active {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--surface-tertiary);
+}
+
+/* Scrollbar that only shows while scrolling (see useScrollbarReveal) or while the
+   pointer is on it. The width stays reserved so content does not shift. */
+.scrollbar-on-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollbar-on-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-on-scroll::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb, transparent);
+    border-radius: var(--radius-sm);
+}
+
+.scrollbar-on-scroll::-webkit-scrollbar-thumb:hover {
     background: var(--surface-tertiary);
 }
 

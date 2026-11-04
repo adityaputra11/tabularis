@@ -78,7 +78,7 @@ export function PluginCallTimeoutSection() {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') e.currentTarget.blur();
                         }}
-                        className="bg-base border border-strong rounded px-3 py-2 text-primary w-24 focus:outline-none focus:border-focus transition-colors"
+                        className="bg-input border border-strong rounded-sm px-3 h-[26px] py-0 text-primary w-24 focus:outline-none focus:border-focus transition-colors"
                     />
                     <span className="text-sm text-muted">{t('settings.seconds')}</span>
                 </div>
@@ -104,7 +104,7 @@ export function PluginCallTimeoutSection() {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') e.currentTarget.blur();
                         }}
-                        className="bg-base border border-strong rounded px-3 py-2 text-primary w-24 focus:outline-none focus:border-focus transition-colors"
+                        className="bg-input border border-strong rounded-sm px-3 h-[26px] py-0 text-primary w-24 focus:outline-none focus:border-focus transition-colors"
                     />
                     <span className="text-sm text-muted">{t('settings.seconds')}</span>
                 </div>

@@ -1,6 +1,6 @@
 import React, {useState, useRef, useCallback, useId} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Filter, ArrowUpDown, ListFilter, Plus, SlidersHorizontal, X, RefreshCw} from 'lucide-react';
+import {Filter, Plus, SlidersHorizontal, X, RefreshCw} from 'lucide-react';
 import type {AutoRefreshInterval, TableColumn} from '@/types/editor';
 import {AUTO_REFRESH_INTERVALS, normalizeAutoRefreshInterval} from '@/utils/autoRefresh';
 import {
@@ -542,22 +542,22 @@ const TableToolbarInternal = ({
         // later siblings).
         <div className="@container relative z-30">
             {/* Always-visible toolbar */}
-            <div className="h-10 bg-elevated border-y border-default flex items-center px-2 gap-2">
+            <div className="bg-base border-b border-default flex items-center px-2 py-1.5 gap-1.5">
                 {/* Filters button */}
                 {hasColumns && (
                     <button
                         onClick={togglePanel}
                         title={t('toolbar.toggleFilterPanel')}
-                        className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs border transition-all shrink-0 ${
+                        className={`flex items-center justify-center gap-1.5 h-[26px] min-w-[26px] px-1.5 rounded-md text-xs transition-colors shrink-0 ${
                             panelOpen
-                                ? 'bg-accent-primary/20 border-accent-primary/50 text-accent'
-                                : 'text-muted border-default hover:text-accent hover:border-accent-primary/40'
+                                ? 'bg-accent-primary/15 text-accent'
+                                : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary hover:text-primary'
                         }`}
                     >
                         <SlidersHorizontal size={12} />
                         <span className="hidden @[520px]:inline">{t('toolbar.filters')}</span>
                         {activeFilterCount > 0 && (
-                            <span className="px-1 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[10px] font-semibold bg-accent-primary/30 text-accent leading-none">
+                            <span className="px-1 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[10px] font-semibold bg-accent-primary text-inverse leading-none">
                                 {activeFilterCount}
                             </span>
                         )}
@@ -566,9 +566,8 @@ const TableToolbarInternal = ({
 
                 {/* WHERE input — hidden while panel is open */}
                 {!panelOpen && (
-                    <div className="flex items-center gap-2 flex-1 bg-base border border-default rounded px-2 py-1 focus-within:border-focus/50 transition-colors relative">
-                        <Filter size={14} className="text-muted shrink-0" />
-                        <span className="hidden @[440px]:inline text-xs text-accent font-mono shrink-0">
+                    <div className="flex items-center gap-2 flex-1 h-[26px] bg-transparent border border-default rounded-sm px-2 hover:border-strong focus-within:border-focus transition-colors relative">
+                        <span className="hidden @[440px]:inline text-[11px] font-semibold tracking-wide text-muted shrink-0">
                             WHERE
                         </span>
                         <input
@@ -595,7 +594,7 @@ const TableToolbarInternal = ({
                                     ? `${whereListId}-${autocompleteIndex}`
                                     : undefined
                             }
-                            className="bg-transparent border-none outline-none text-xs text-secondary w-full placeholder:text-surface-tertiary font-mono"
+                            className="bg-transparent border-none outline-none text-xs text-primary w-full placeholder:text-muted"
                             placeholder={`${placeholderColumn} > 5 AND status = 'active'`}
                         />
 
@@ -604,7 +603,7 @@ const TableToolbarInternal = ({
                                 id={whereListId}
                                 role="listbox"
                                 tabIndex={-1}
-                                className="absolute left-0 top-full mt-1 z-50 bg-elevated border border-default rounded-lg shadow-xl min-w-52 max-h-52 overflow-y-auto"
+                                className="absolute left-0 top-full mt-1 z-50 bg-surface-secondary border border-default rounded-md shadow-lg min-w-52 max-h-52 overflow-y-auto"
                                 onMouseDown={() => {
                                     autocompleteMouseDown.current = true;
                                 }}
@@ -618,10 +617,10 @@ const TableToolbarInternal = ({
                                         id={`${whereListId}-${idx}`}
                                         role="option"
                                         aria-selected={idx === autocompleteIndex}
-                                        className={`flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                                        className={`flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer transition-colors ${
                                             idx === autocompleteIndex
-                                                ? 'bg-accent-primary/25 text-accent'
-                                                : 'text-secondary hover:bg-surface-secondary'
+                                                ? 'bg-accent-primary/15 text-accent'
+                                                : 'text-secondary hover:bg-surface-hover hover:text-primary'
                                         }`}
                                         onMouseDown={(e) => {
                                             e.preventDefault();
@@ -660,9 +659,8 @@ const TableToolbarInternal = ({
                 )}
 
                 {/* ORDER BY */}
-                <div className="relative flex items-center gap-1.5 flex-1 bg-base border border-default rounded px-2 py-1 focus-within:border-focus/50 transition-colors">
-                    <ArrowUpDown size={14} className="text-muted shrink-0" />
-                    <span className="hidden @[440px]:inline text-xs text-accent font-mono shrink-0">
+                <div className="relative flex items-center gap-1.5 flex-1 h-[26px] bg-transparent border border-default rounded-sm px-2 hover:border-strong focus-within:border-focus transition-colors">
+                    <span className="hidden @[440px]:inline text-[11px] font-semibold tracking-wide text-muted shrink-0">
                         ORDER BY
                     </span>
                     <input
@@ -687,7 +685,7 @@ const TableToolbarInternal = ({
                                 ? `${sortListId}-${sortAcIndex}`
                                 : undefined
                         }
-                        className="bg-transparent border-none outline-none text-xs text-secondary w-full placeholder:text-surface-tertiary font-mono"
+                        className="bg-transparent border-none outline-none text-xs text-primary w-full placeholder:text-muted"
                         placeholder={`${placeholderSort} DESC`}
                     />
 
@@ -696,7 +694,7 @@ const TableToolbarInternal = ({
                             id={sortListId}
                             role="listbox"
                             tabIndex={-1}
-                            className="absolute left-0 top-full mt-1 z-50 bg-elevated border border-default rounded-lg shadow-xl min-w-52 max-h-52 overflow-y-auto"
+                            className="absolute left-0 top-full mt-1 z-50 bg-surface-secondary border border-default rounded-md shadow-lg min-w-52 max-h-52 overflow-y-auto"
                             onMouseDown={() => {
                                 sortAcMouseDown.current = true;
                             }}
@@ -710,10 +708,10 @@ const TableToolbarInternal = ({
                                     id={`${sortListId}-${idx}`}
                                     role="option"
                                     aria-selected={idx === sortAcIndex}
-                                    className={`flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                                    className={`flex items-center justify-between px-3 py-1.5 text-xs cursor-pointer transition-colors ${
                                         idx === sortAcIndex
-                                            ? 'bg-accent-primary/25 text-accent'
-                                            : 'text-secondary hover:bg-surface-secondary'
+                                            ? 'bg-accent-primary/15 text-accent'
+                                            : 'text-secondary hover:bg-surface-hover hover:text-primary'
                                     }`}
                                     onMouseDown={(e) => {
                                         e.preventDefault();
@@ -731,9 +729,8 @@ const TableToolbarInternal = ({
                 </div>
 
                 {/* LIMIT */}
-                <div className="flex items-center gap-1.5 w-20 @[560px]:w-32 bg-base border border-default rounded px-2 py-1 focus-within:border-focus/50 transition-colors shrink-0">
-                    <ListFilter size={14} className="text-muted shrink-0" />
-                    <span className="hidden @[440px]:inline text-xs text-accent font-mono shrink-0">
+                <div className="flex items-center gap-1.5 w-20 @[560px]:w-28 h-[26px] bg-transparent border border-default rounded-sm px-2 hover:border-strong focus-within:border-focus transition-colors shrink-0">
+                    <span className="hidden @[440px]:inline text-[11px] font-semibold tracking-wide text-muted shrink-0">
                         LIMIT
                     </span>
                     <input
@@ -746,7 +743,7 @@ const TableToolbarInternal = ({
                         onChange={(e) => setLimitInput(e.target.value)}
                         onBlur={handleLimitBlur}
                         onKeyDown={handleSortLimitKeyDown}
-                        className="bg-transparent border-none outline-none text-xs text-secondary w-full placeholder:text-surface-tertiary font-mono"
+                        className="bg-transparent border-none outline-none text-xs text-primary w-full placeholder:text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         placeholder={String(defaultLimit)}
                     />
                 </div>
@@ -760,7 +757,7 @@ const TableToolbarInternal = ({
                             disabled={refreshDisabled}
                             aria-label={t('toolbar.autoRefresh.refresh')}
                             title={t('toolbar.autoRefresh.refresh')}
-                            className={`p-1 rounded hover:text-primary disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
+                            className={`p-1 rounded-md hover:bg-surface-hover hover:text-primary disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
                                 autoRefreshActive ? 'text-accent' : 'text-muted'
                             }`}
                         >
@@ -821,13 +818,13 @@ const TableToolbarInternal = ({
                 <div
                     role="presentation"
                     onKeyDown={handlePanelKeyDown}
-                    className="w-full bg-elevated border-b border-default/80"
+                    className="w-full bg-elevated border-b border-default"
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-3 py-2 border-b border-default/60 bg-base/40">
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-default bg-base">
                         <div className="flex items-center gap-2">
                             <SlidersHorizontal size={13} className="text-muted" />
-                            <span className="text-xs font-medium text-secondary">
+                            <span className="text-xs font-medium text-primary">
                                 {t('toolbar.filterConditions')}
                             </span>
                             {structuredFilters.length > 0 && (
@@ -843,7 +840,7 @@ const TableToolbarInternal = ({
                             <div
                                 role="group"
                                 aria-label={t('toolbar.matchMode')}
-                                className="flex items-center rounded border border-default/60 overflow-hidden"
+                                className="flex items-center rounded-md border border-default overflow-hidden"
                             >
                                 {(['AND', 'OR'] as const).map((mode) => (
                                     <button
@@ -853,8 +850,8 @@ const TableToolbarInternal = ({
                                         onClick={() => handleCombinatorChange(mode)}
                                         className={`px-2 py-0.5 text-[10px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                             combinator === mode
-                                                ? 'bg-accent-primary/20 text-accent'
-                                                : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                                ? 'bg-accent-primary/15 text-accent'
+                                                : 'text-muted hover:text-primary hover:bg-surface-hover'
                                         }`}
                                     >
                                         {mode === 'AND'
@@ -866,7 +863,7 @@ const TableToolbarInternal = ({
                             <button
                                 onClick={closePanel}
                                 title={t('toolbar.closePanelEsc')}
-                                className="w-5 h-5 flex items-center justify-center rounded text-muted hover:text-secondary hover:bg-surface-secondary transition-colors"
+                                className="w-5 h-5 flex items-center justify-center rounded-md text-muted hover:text-primary hover:bg-surface-hover transition-colors"
                             >
                                 <X size={12} />
                             </button>
@@ -874,13 +871,13 @@ const TableToolbarInternal = ({
                     </div>
 
                     {/* Filter rows — scroll horizontally when the pane is narrower than a row */}
-                    <div className="divide-y divide-default/30 overflow-x-auto overflow-y-auto max-h-[40vh]">
+                    <div className="divide-y divide-default overflow-x-auto overflow-y-auto max-h-[40vh]">
                         {structuredFilters.length === 0 ? (
                             <div className="flex items-center gap-2 px-3 py-3">
                                 <span className="text-xs text-muted">{t('toolbar.noFilters')}</span>
                                 <button
                                     onClick={handleAddFilter}
-                                    className="text-xs text-accent transition-colors"
+                                    className="text-xs text-accent hover:text-primary transition-colors"
                                 >
                                     {t('toolbar.addFirstFilter')}
                                 </button>
@@ -914,10 +911,10 @@ const TableToolbarInternal = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center gap-2 px-3 py-2 border-t border-default/60 bg-base/40">
+                    <div className="flex items-center gap-2 px-3 py-2 border-t border-default bg-base">
                         <button
                             onClick={handleUnset}
-                            className="px-2.5 py-1 rounded text-xs text-muted border border-default/70 hover:text-secondary hover:border-default transition-colors"
+                            className="h-[26px] px-2.5 rounded-md text-xs text-primary bg-surface-secondary hover:bg-surface-tertiary transition-colors"
                         >
                             {t('toolbar.unset')}
                         </button>
@@ -925,14 +922,14 @@ const TableToolbarInternal = ({
                         <button
                             onClick={closePanel}
                             title={t('toolbar.switchToSql')}
-                            className="px-2.5 py-1 rounded text-xs text-muted border border-default/70 hover:text-accent hover:border-accent-primary/50 transition-colors"
+                            className="h-[26px] px-2.5 rounded-md text-xs text-primary bg-surface-secondary hover:bg-surface-tertiary transition-colors"
                         >
                             {t('toolbar.sql')}
                         </button>
 
                         <button
                             onClick={handleAddFilter}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs text-muted border border-dashed border-default/70 hover:text-accent hover:border-accent-primary/50 transition-colors"
+                            className="flex items-center gap-1 h-[26px] px-2.5 rounded-md text-xs text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
                         >
                             <Plus size={11} />
                             {t('toolbar.addFilter')}
@@ -943,7 +940,7 @@ const TableToolbarInternal = ({
                         {/* Apply All — does NOT close panel */}
                         <button
                             onClick={handleApplyAll}
-                            className="px-3 py-1 rounded text-xs font-medium border transition-colors bg-accent-primary/20 border-accent-primary/50 text-accent hover:bg-accent-primary/30 hover:border-accent-primary/70"
+                            className="h-[26px] px-3 rounded-md text-xs font-medium transition-colors bg-accent-primary text-inverse hover:bg-accent-primary/90"
                         >
                             {t('toolbar.applyAll')}
                         </button>

@@ -15,7 +15,12 @@ import {
     resolveTabPageSize,
 } from '@/utils/editor';
 import {shouldShowStatementSuccess} from '@/utils/resultPresentation';
-import {formatRowsForCopy, copyTextToClipboard} from '@/utils/clipboard';
+import {
+    formatRowsForCopy,
+    copyTextToClipboard,
+    sqlUpdateBlocker,
+    type CopyFormat,
+} from '@/utils/clipboard';
 import {onActivationKey, isTypingTarget} from '@/utils/keyboardEvents';
 import {
     formatResultForExport,
@@ -35,7 +40,7 @@ import {
     clonePendingInsertions,
     type GridPendingSnapshot,
 } from '@/utils/gridUndo';
-import {TONE_SOFT_BG_CLASS, TONE_TEXT_CLASS, tint} from '@/utils/tones';
+import {TONE_SOFT_BG_CLASS, TONE_TEXT_CLASS} from '@/utils/tones';
 import {buildKeylessUpdatePlan, resolveRowIdentity} from '@/utils/rowIdentity';
 import {
     getTableDataChangeScope,
@@ -99,6 +104,8 @@ import {
     BookOpen,
     UsersRound,
     Pencil,
+    Pin,
+    PinOff,
     Hash,
     Loader2,
     Copy,
@@ -120,6 +127,8 @@ import {PageSizeSelector} from '@/components/ui/PageSizeSelector';
 import {LazyResultChart} from '@/components/ui/LazyResultChart';
 import {totalPageCount} from '@/utils/pagination';
 import {ResultViewToggle} from '@/components/ui/ResultViewToggle';
+import {TransposeIcon} from '@/components/icons/TransposeIcon';
+import {HiddenColumnsIndicator} from '@/components/ui/HiddenColumnsIndicator';
 import {NewRowModal} from '@/components/modals/NewRowModal';
 import {QuerySelectionModal} from '@/components/modals/QuerySelectionModal';
 import {ConfirmModal} from '@/components/modals/ConfirmModal';
@@ -161,6 +170,7 @@ import {extractQueryParams, interpolateQueryParams} from '@/utils/queryParameter
 import {formatDuration, formatTimingTooltip} from '@/utils/formatTime';
 import {useTimingLabels} from '@/hooks/useTimingLabels';
 import {useResultChartState} from '@/hooks/useResultChartState';
+import {useHiddenColumns} from '@/hooks/useHiddenColumns';
 import {notifyQueryFinished} from '@/utils/queryNotification';
 import {
     buildSyncPayload,
@@ -229,7 +239,8 @@ import {
     type PluginColumnStatsFetcher,
 } from '@/utils/columnStats';
 import {getNextSortClause} from '@/utils/tableToolbar';
-import {getAdjacentTabGap} from '@/utils/tabDnd';
+import {clampTabGap, getAdjacentTabGap} from '@/utils/tabDnd';
+import {getBulkClosedTabIds} from '@/utils/tabPins';
 import {
     createSqlFileTab,
     getSqlFileName,
@@ -314,6 +325,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
         activeTabId,
         updateTab,
         reorderTab,
+        setTabPinned,
         updateResultEntry: patchResultEntry,
         addTab,
         setActiveTabId,
@@ -596,9 +608,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
     >([]);
     const [isCountLoading, setIsCountLoading] = useState(false);
     const [applyToAll, setApplyToAll] = useState(false);
-    const [copyFormat, setCopyFormat] = useState<'csv' | 'json' | 'sql-insert' | 'markdown'>(
-        settings.copyFormat ?? 'csv',
-    );
+    const [copyFormat, setCopyFormat] = useState<CopyFormat>(settings.copyFormat ?? 'csv');
     const [csvDelimiter, setCsvDelimiter] = useState(settings.csvDelimiter ?? ',');
     const [csvIncludeHeaders, setCsvIncludeHeaders] = useState(settings.csvIncludeHeaders ?? true);
 
@@ -613,6 +623,11 @@ export const Editor = ({commandScopeId}: EditorProps) => {
         !!activeTab && !isTableTab && (activeTab.result?.columns.length ?? 0) > 0;
     const resultChart = useResultChartState(resultChartEnabled ? activeTab.id : null);
     const showResultChart = resultChartEnabled && resultChart.view === 'chart';
+    // Columns hidden in the active tab's grid (#1299).
+    const resultHiddenColumns = useHiddenColumns(
+        activeTab?.id ?? null,
+        activeTab?.result?.columns ?? [],
+    );
     const isMultiDb = usesMultiDatabaseLayout(activeCapabilities, selectedDatabases);
     const tabStripId = useId();
     // Full name behind a truncated tab title (tooltip and accessible name).
@@ -889,21 +904,32 @@ export const Editor = ({commandScopeId}: EditorProps) => {
         stopTabAutoScroll();
     }, [stopTabAutoScroll]);
 
+    // Pixel offset of the insertion line for a gap: the left edge of the tab after it,
+    // or the right edge of the last tab.
+    const tabGapLeft = useCallback((gap: number): number => {
+        const tabEls = Array.from(
+            tabScrollRef.current?.querySelectorAll<HTMLElement>('[data-tab-id]') ?? [],
+        );
+        const next = tabEls[gap];
+        if (next) return next.offsetLeft;
+        const last = tabEls.at(-1);
+        return last ? last.offsetLeft + last.offsetWidth : 0;
+    }, []);
+
     const handleTabDragOver = useCallback(
         (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
             if (!dragTabId) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            // Left half of the tab drops before it, right half drops after it.
-            const target = e.currentTarget;
-            const rect = target.getBoundingClientRect();
+            // Left half of the tab drops before it, right half drops after it. Pinned
+            // tabs stay before unpinned ones, so the gap is kept in the dragged tab's group.
+            const rect = e.currentTarget.getBoundingClientRect();
             const after = e.clientX > rect.left + rect.width / 2;
-            setDropPos(after ? index + 1 : index);
-            setDropIndicatorLeft(
-                after ? target.offsetLeft + target.offsetWidth : target.offsetLeft,
-            );
+            const gap = clampTabGap(tabs, dragTabId, after ? index + 1 : index);
+            setDropPos(gap);
+            setDropIndicatorLeft(tabGapLeft(gap));
         },
-        [dragTabId],
+        [dragTabId, tabs, tabGapLeft],
     );
 
     // Drive edge auto-scroll from the scroll container, and fall back to
@@ -924,12 +950,12 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                 autoScrollRafRef.current = requestAnimationFrame(stepTabAutoScroll);
             }
             if (e.target === container) {
-                const lastTab = container.children[tabs.length - 1] as HTMLElement | undefined;
-                setDropPos(tabs.length);
-                setDropIndicatorLeft(lastTab ? lastTab.offsetLeft + lastTab.offsetWidth : 0);
+                const gap = clampTabGap(tabs, dragTabId, tabs.length);
+                setDropPos(gap);
+                setDropIndicatorLeft(tabGapLeft(gap));
             }
         },
-        [dragTabId, tabs.length, stepTabAutoScroll],
+        [dragTabId, tabs, stepTabAutoScroll, tabGapLeft],
     );
 
     const handleTabsDrop = useCallback(
@@ -1075,9 +1101,11 @@ export const Editor = ({commandScopeId}: EditorProps) => {
         [clearEntryScrollTops, closeTab, requestTabClosure],
     );
 
+    // Bulk close actions leave pinned tabs open, so only the tabs they close are
+    // checked for unsaved changes.
     const handleCloseOtherTabs = useCallback(
         (tabId: string) => {
-            const tabIds = tabsRef.current.filter((tab) => tab.id !== tabId).map((tab) => tab.id);
+            const tabIds = getBulkClosedTabIds(tabsRef.current, 'others', tabId);
             requestTabClosure(tabIds, () => closeOtherTabs(tabId));
         },
         [closeOtherTabs, requestTabClosure],
@@ -1085,8 +1113,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
 
     const handleCloseTabsToRight = useCallback(
         (tabId: string) => {
-            const index = tabsRef.current.findIndex((tab) => tab.id === tabId);
-            const tabIds = index < 0 ? [] : tabsRef.current.slice(index + 1).map((tab) => tab.id);
+            const tabIds = getBulkClosedTabIds(tabsRef.current, 'right', tabId);
             requestTabClosure(tabIds, () => closeTabsToRight(tabId));
         },
         [closeTabsToRight, requestTabClosure],
@@ -1094,18 +1121,14 @@ export const Editor = ({commandScopeId}: EditorProps) => {
 
     const handleCloseTabsToLeft = useCallback(
         (tabId: string) => {
-            const index = tabsRef.current.findIndex((tab) => tab.id === tabId);
-            const tabIds = index < 0 ? [] : tabsRef.current.slice(0, index).map((tab) => tab.id);
+            const tabIds = getBulkClosedTabIds(tabsRef.current, 'left', tabId);
             requestTabClosure(tabIds, () => closeTabsToLeft(tabId));
         },
         [closeTabsToLeft, requestTabClosure],
     );
 
     const handleCloseAllTabs = useCallback(() => {
-        requestTabClosure(
-            tabsRef.current.map((tab) => tab.id),
-            closeAllTabs,
-        );
+        requestTabClosure(getBulkClosedTabIds(tabsRef.current, 'all'), closeAllTabs);
     }, [closeAllTabs, requestTabClosure]);
 
     const cancelPendingTabClosure = useCallback(() => {
@@ -2229,6 +2252,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
             tableName: string | null,
             sessionId: string,
             database?: string | null,
+            pkColumns?: string[] | null,
         ): Promise<CopiedRows | null> => {
             const columns = result?.columns ?? [];
             if (!activeConnectionId || columns.length === 0 || !query.trim()) {
@@ -2264,8 +2288,11 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                 tableName,
                 driver: activeCapabilities,
                 nullLabel: settings.copyNullLabel ?? 'null',
+                pkColumns,
             });
-            return {text, count: rows.length};
+            const asInsert =
+                copyFormat === 'sql-update' && sqlUpdateBlocker(fetchedColumns, pkColumns) !== null;
+            return {text, count: rows.length, ...(asInsert ? {asInsert} : {})};
         },
         [
             client,
@@ -2308,6 +2335,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                     tab.activeTable,
                     tab.id,
                     tab.database,
+                    tab.pkColumns,
                 );
             if (tab.type !== 'table') return fetch();
 
@@ -2340,6 +2368,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                 entry.activeTable,
                 tab.id,
                 tab.database,
+                entry.pkColumns,
             );
         },
         [activeSchema, fetchAllRows],
@@ -2351,9 +2380,12 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                 const copied = await rows;
                 if (!copied) return;
                 await copyTextToClipboard(copied.text);
-                showToast(t('dataGrid.copiedRows', {count: copied.count}), {
-                    kind: 'success',
-                });
+                showToast(
+                    t(copied.asInsert ? 'dataGrid.copiedAsInsertNoKey' : 'dataGrid.copiedRows', {
+                        count: copied.count,
+                    }),
+                    {kind: 'success'},
+                );
             } catch (e) {
                 showAlert(t('common.error') + ': ' + e, {
                     title: t('common.error'),
@@ -4926,7 +4958,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                             <p className="mb-4">{t('editor.noTabs')}</p>
                             <button
                                 onClick={() => addTab({type: 'console'})}
-                                className="px-4 py-2 bg-accent-primary hover:bg-accent-primary/90 text-inverse rounded transition-colors"
+                                className="px-4 py-2 bg-accent-primary hover:bg-accent-primary/90 text-inverse text-sm font-medium rounded-lg transition-colors"
                             >
                                 {t('editor.newConsole')}
                             </button>
@@ -4946,39 +4978,26 @@ export const Editor = ({commandScopeId}: EditorProps) => {
               allDrivers.find((d) => d.id === activeDriver),
           )
         : null;
-    // Active-tab accents (indicator line, loading bar, rename border) follow the
-    // connection color when present, falling back to the default blue otherwise.
+    // Loading bar, spinner and drop indicator follow the connection color when
+    // present, falling back to the default blue otherwise.
     const tabAccentColor = tabBarAccent ?? 'var(--accent-primary)';
-    const tabTint = (percent: number) => tint(tabAccentColor, percent);
 
     return (
         <div ref={editorRootRef} className="flex flex-col h-full bg-base">
             {commandPaletteScopeBridge}
-            {/* Tab Bar — tinted with the active connection's accent color */}
-            <div
-                className="flex items-center bg-elevated border-b border-default h-9 shrink-0"
-                style={
-                    tabBarAccent
-                        ? {
-                              // Vertical accent wash (stronger at top) + accent-tinted bottom
-                              // border so the bar reads as part of the active connection.
-                              backgroundImage: `linear-gradient(${tabBarAccent}30, ${tabBarAccent}20)`,
-                              borderBottomColor: `${tabBarAccent}50`,
-                          }
-                        : undefined
-                }
-            >
+            {/* Tab Bar */}
+            <div className="flex items-center bg-elevated h-[2.4rem] shrink-0">
                 <button
                     onClick={() => scrollTabs('left')}
                     disabled={!canScrollLeft}
-                    className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-secondary"
+                    className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-hover"
                 >
                     <ChevronLeft size={14} />
                 </button>
                 <button
                     onClick={() => scrollTabs('right')}
                     disabled={!canScrollRight}
-                    className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-secondary"
+                    className="flex items-center justify-center w-7 h-full text-muted border-r border-default shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:text-primary hover:enabled:bg-surface-hover"
                 >
                     <ChevronRight size={14} />
                 </button>
@@ -4987,7 +5006,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                     onScroll={updateScrollArrows}
                     onDragOver={handleTabsContainerDragOver}
                     onDrop={handleTabsDrop}
-                    className="flex flex-1 overflow-x-auto no-scrollbar h-full relative"
+                    className="flex flex-1 overflow-x-auto no-scrollbar h-full relative gap-px"
                 >
                     {/* Always mounted, so a screen reader announces when the active tab opens a transaction. */}
                     <span role="status" className="sr-only">
@@ -4998,6 +5017,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                     {tabs.map((tab, index) => (
                         <div
                             key={tab.id}
+                            data-tab-id={tab.id}
                             draggable
                             onDragStart={(e) => handleTabDragStart(e, tab.id)}
                             onDragEnd={handleTabDragEnd}
@@ -5008,6 +5028,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                             aria-label={tabFullTitle(tab)}
                             aria-describedby={
                                 [
+                                    tab.pinned ? `${tabStripId}-pinned-${tab.id}` : null,
                                     tab.sourceFileDirty ? `${tabStripId}-dirty-${tab.id}` : null,
                                     transactionTabIds.has(tab.id)
                                         ? `${tabStripId}-transaction-${tab.id}`
@@ -5027,34 +5048,13 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                 }
                             }}
                             className={clsx(
-                                'flex items-center gap-2 px-3 h-full border-r border-default cursor-pointer min-w-[140px] max-w-[220px] text-xs transition-all duration-150 group relative select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
+                                'flex items-center gap-2 pl-2.5 pr-1 h-full rounded-t-md cursor-pointer min-w-[28px] max-w-[200px] text-[0.85rem] group relative select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
                                 activeTabId === tab.id
-                                    ? 'bg-base text-primary font-medium'
-                                    : 'text-muted hover:bg-[var(--tab-hover)] hover:text-secondary',
+                                    ? 'bg-base text-primary font-semibold'
+                                    : 'bg-surface-secondary text-secondary',
                                 dragTabId === tab.id && 'opacity-40',
                             )}
-                            style={
-                                activeTabId === tab.id
-                                    ? {
-                                          // Active tab keeps the content background (so it reads as
-                                          // connected to the pane below) but carries a soft accent
-                                          // body, stronger at the top, tinted by the connection.
-                                          backgroundImage: `linear-gradient(${tabTint(19)}, ${tabTint(13)})`,
-                                      }
-                                    : // Inactive tabs pick up a soft accent wash on hover instead of
-                                      // a flat neutral grey, keeping the strip tied to the connection.
-                                      ({'--tab-hover': `${tabTint(20)}`} as React.CSSProperties)
-                            }
                         >
-                            {activeTabId === tab.id && (
-                                <div
-                                    className="absolute top-0 left-0 right-0 h-[2px] rounded-b-sm"
-                                    style={{
-                                        backgroundColor: `${tabTint(80)}`,
-                                        boxShadow: `0 0 5px ${tabTint(35)}`,
-                                    }}
-                                />
-                            )}
                             {tab.isLoading ? (
                                 // Running indicator: the type icon gives way to a spinner so
                                 // the tab whose query is executing stands out even when it is
@@ -5076,7 +5076,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                             ) : tab.type === 'query_builder' ? (
                                 <Network size={12} className="text-accent-secondary shrink-0" />
                             ) : tab.type === 'notebook' ? (
-                                <BookOpen size={12} className="text-accent-warning shrink-0" />
+                                <BookOpen size={12} className="text-accent shrink-0" />
                             ) : tab.type === 'users' ? (
                                 <UsersRound size={12} className="text-accent-success shrink-0" />
                             ) : (
@@ -5101,8 +5101,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                         if (e.key === 'Enter') commitTabRename();
                                         if (e.key === 'Escape') setEditingTabId(null);
                                     }}
-                                    className="flex-1 min-w-0 bg-surface-secondary border rounded px-1 py-0.5 text-xs text-primary focus:outline-none"
-                                    style={{borderColor: `${tabTint(50)}`}}
+                                    className="flex-1 min-w-0 bg-input border border-focus rounded-sm px-1 py-0.5 text-xs text-primary focus:outline-none"
                                 />
                             ) : (
                                 <span
@@ -5143,13 +5142,23 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                         // uncommitted changes are invisible to every other tab.
                                         <span
                                             id={`${tabStripId}-transaction-${tab.id}`}
-                                            className={`shrink-0 px-1 rounded text-[9px] font-semibold uppercase tracking-wide ${TONE_SOFT_BG_CLASS.warning} ${TONE_TEXT_CLASS.warning}`}
+                                            className={`shrink-0 px-1 rounded text-[10px] font-medium ${TONE_SOFT_BG_CLASS.warning} ${TONE_TEXT_CLASS.warning}`}
                                             title={t('editor.transactionOpenHint')}
                                             aria-label={t('editor.transactionOpenHint')}
                                         >
                                             {t('editor.transactionOpen')}
                                         </span>
                                     )}
+                                </span>
+                            )}
+                            {tab.pinned && (
+                                // The tab's aria-label replaces its text, so the pinned state
+                                // reaches screen readers as a description instead.
+                                <span className="flex shrink-0 text-muted">
+                                    <Pin size={11} aria-hidden="true" />
+                                    <span id={`${tabStripId}-pinned-${tab.id}`} className="sr-only">
+                                        {t('editor.pinnedTab')}
+                                    </span>
                                 </span>
                             )}
                             <button
@@ -5160,10 +5169,13 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                 }}
                                 aria-label={t('editor.closeTab')}
                                 className={clsx(
-                                    'p-0.5 rounded hover:bg-surface-secondary hover:text-primary hover:scale-110 transition-all duration-150 shrink-0',
+                                    'p-0.5 rounded-sm text-muted hover:bg-surface-tertiary hover:text-primary transition-colors duration-150 shrink-0',
                                     activeTabId === tab.id
                                         ? 'opacity-100'
-                                        : 'opacity-0 group-hover:opacity-100',
+                                        : tab.sourceFileDirty
+                                          ? // Unsaved tab: the dirty marker stands in for the close icon until hover.
+                                            'hidden group-hover:block'
+                                          : 'opacity-0 group-hover:opacity-100',
                                 )}
                             >
                                 <X size={12} />
@@ -5192,21 +5204,21 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                             ...(isMultiDb ? {schema: selectedDatabases[0]} : {}),
                         })
                     }
-                    className="flex items-center justify-center w-9 h-full text-muted hover:text-primary hover:bg-surface-secondary border-l border-default transition-colors shrink-0"
+                    className="flex items-center justify-center w-6 h-6 mx-1.5 rounded-full text-muted hover:text-primary hover:bg-surface-hover transition-colors shrink-0"
                     title={t('editor.newConsole')}
                 >
                     <Plus size={16} />
                 </button>
                 <button
                     onClick={handleOpenSqlFile}
-                    className="flex items-center justify-center w-9 h-full text-accent-info hover:text-primary hover:bg-surface-secondary border-l border-default transition-colors shrink-0"
+                    className="flex items-center justify-center w-7 h-7 rounded-md text-muted hover:text-primary hover:bg-surface-hover transition-colors shrink-0"
                     title={t('editor.openSqlFile')}
                 >
                     <FolderOpen size={16} />
                 </button>
                 <button
                     onClick={() => addTab({type: 'query_builder'})}
-                    className="flex items-center justify-center w-9 h-full text-accent-secondary hover:text-primary hover:bg-surface-secondary border-l border-default transition-colors shrink-0"
+                    className="flex items-center justify-center w-7 h-7 rounded-md text-muted hover:text-primary hover:bg-surface-hover transition-colors shrink-0"
                     title={t('editor.newVisualQuery')}
                 >
                     <Network size={16} />
@@ -5226,7 +5238,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                             ...(isMultiDb ? {schema: selectedDatabases[0]} : {}),
                         });
                     }}
-                    className="flex items-center justify-center w-9 h-full text-accent-warning hover:text-primary hover:bg-surface-secondary border-l border-default transition-colors shrink-0"
+                    className="flex items-center justify-center w-7 h-7 rounded-md text-muted hover:text-primary hover:bg-surface-hover transition-colors shrink-0"
                     title={t('editor.newNotebook')}
                 >
                     <BookOpen size={16} />
@@ -5243,14 +5255,14 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                     {!activeTab.readOnly && activeTab.isLoading ? (
                         <button
                             onClick={stopQuery}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-accent-error hover:bg-accent-error/90 text-on-accent-error rounded text-sm font-medium shrink-0 whitespace-nowrap"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-accent-error hover:bg-accent-error/90 text-on-accent-error rounded-lg text-sm font-medium shrink-0 whitespace-nowrap"
                         >
                             <Square size={16} fill="currentColor" /> {t('editor.stop')}
                         </button>
                     ) : !activeTab.readOnly ? (
                         <div
                             ref={runDropdownRef}
-                            className="flex items-center rounded bg-accent-success relative shrink-0"
+                            className="flex items-center rounded-lg bg-accent-success relative shrink-0"
                         >
                             <button
                                 onClick={handleRunButton}
@@ -5271,13 +5283,13 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     <button
                                         onClick={handleRunDropdownToggle}
                                         disabled={!activeConnectionId}
-                                        className="px-1.5 py-1.5 text-on-accent-success rounded-r hover:brightness-110 disabled:opacity-50"
+                                        className="px-1.5 py-1.5 text-on-accent-success rounded-r-lg hover:brightness-110 disabled:opacity-50"
                                     >
                                         <ChevronDown size={14} />
                                     </button>
 
                                     {isRunDropdownOpen && (
-                                        <div className="absolute top-full left-0 mt-1 w-80 max-w-[calc(100cqw-1rem)] bg-surface-secondary border border-strong rounded shadow-xl z-50 flex flex-col py-1 max-h-80 overflow-y-auto">
+                                        <div className="absolute top-full left-0 mt-1 w-80 max-w-[calc(100cqw-1rem)] bg-surface-secondary border border-strong rounded-md shadow-xl z-50 flex flex-col py-1 max-h-80 overflow-y-auto">
                                             {dropdownQueries.length > 1 && (
                                                 <button
                                                     onClick={() => {
@@ -5346,10 +5358,10 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                         <button
                             onClick={handleEditParams}
                             disabled={!hasQueryParams}
-                            className="flex items-center gap-2 px-2 @[640px]:px-3 py-1.5 bg-surface-secondary hover:bg-surface text-primary rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-strong shrink-0"
+                            className="flex items-center gap-2 px-2 @[640px]:px-3 py-1.5 bg-surface-secondary hover:bg-surface-tertiary text-primary rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-default shrink-0"
                             title={t('editor.queryParameters')}
                         >
-                            <span className="font-mono text-xs font-bold border border-muted text-secondary rounded px-1.5 py-0.5">
+                            <span className="font-mono text-xs font-medium border border-muted text-secondary rounded px-1.5 py-0.5">
                                 P
                             </span>
                             <span className="hidden @[640px]:inline whitespace-nowrap">
@@ -5368,7 +5380,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                 }
                             }}
                             disabled={!activeTab?.query?.trim()}
-                            className="flex items-center gap-2 px-2 @[640px]:px-3 py-1.5 bg-surface-secondary hover:bg-surface text-primary rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-strong shrink-0"
+                            className="flex items-center gap-2 px-2 @[640px]:px-3 py-1.5 bg-surface-secondary hover:bg-surface-tertiary text-primary rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-default shrink-0"
                             title={`${t('editor.formatSql')} (${isMac ? 'Shift+⌥+F' : 'Shift+Alt+F'})`}
                         >
                             <WrapText size={16} />
@@ -5383,7 +5395,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
             save destinations. */}
                     {!isTableTab && activeTab.type === 'console' && (
                         <div ref={saveMenuRef} className="relative shrink-0">
-                            <div className="flex items-center rounded border border-strong bg-surface-secondary text-sm font-medium">
+                            <div className="flex items-center rounded-lg border border-default bg-surface-secondary text-sm font-medium">
                                 <button
                                     onClick={() => handleSaveSqlFile(activeTab)}
                                     disabled={!canSaveSqlFile(activeTab)}
@@ -5392,7 +5404,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                             ? `${t('editor.saveSqlFile')} (${isMac ? '⌘S' : 'Ctrl+S'})\n${activeTab.sourceFilePath}`
                                             : t('editor.saveSqlFileAs')
                                     }
-                                    className="flex items-center gap-2 px-2 @[640px]:px-3 py-1.5 rounded-l text-primary enabled:hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="flex items-center gap-2 px-2 @[640px]:px-3 py-1.5 rounded-l-lg text-primary enabled:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Save size={16} />
                                     <span className="hidden @[640px]:inline whitespace-nowrap">
@@ -5405,7 +5417,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                         />
                                     )}
                                 </button>
-                                <div className="h-5 w-px bg-strong" />
+                                <div className="h-5 w-px bg-default" />
                                 <button
                                     onClick={() => setIsSaveMenuOpen((v) => !v)}
                                     aria-haspopup="menu"
@@ -5413,7 +5425,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     aria-label={t('editor.saveOptions')}
                                     title={t('editor.saveOptions')}
                                     className={clsx(
-                                        'px-1.5 py-1.5 rounded-r text-primary hover:bg-surface transition-colors',
+                                        'px-1.5 py-1.5 rounded-r-lg text-primary hover:bg-surface-tertiary transition-colors',
                                         isSaveMenuOpen && 'bg-surface',
                                     )}
                                 >
@@ -5429,7 +5441,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                             {isSaveMenuOpen && (
                                 <div
                                     role="menu"
-                                    className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100cqw-1rem)] bg-surface-secondary border border-strong rounded shadow-xl z-50 flex flex-col py-1 overflow-hidden"
+                                    className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100cqw-1rem)] bg-surface-secondary border border-strong rounded-md shadow-xl z-50 flex flex-col py-1 overflow-hidden"
                                 >
                                     <button
                                         role="menuitem"
@@ -5526,7 +5538,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     role="menuitem"
                                     onClick={handleExportCSV}
                                     disabled={!hasLoadedExportRows}
-                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary enabled:hover:bg-accent-primary/15 enabled:hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary enabled:hover:bg-surface-tertiary enabled:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <FileText size={14} className="shrink-0 opacity-80" />
                                     <span className="flex-1">CSV</span>
@@ -5537,7 +5549,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     role="menuitem"
                                     onClick={handleExportJSON}
                                     disabled={!hasLoadedExportRows}
-                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary enabled:hover:bg-accent-primary/15 enabled:hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary enabled:hover:bg-surface-tertiary enabled:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <FileJson size={14} className="shrink-0 opacity-80" />
                                     <span className="flex-1">JSON</span>
@@ -5547,7 +5559,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     type="button"
                                     role="menuitem"
                                     onClick={handleExportNDJSON}
-                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary hover:bg-accent-primary/15 hover:text-accent transition-colors whitespace-nowrap"
+                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary hover:bg-surface-tertiary hover:text-primary transition-colors whitespace-nowrap"
                                 >
                                     <FileJson size={14} className="shrink-0 opacity-80" />
                                     <span className="flex-1">{t('editor.exportLoadedNdjson')}</span>
@@ -5557,7 +5569,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     role="menuitem"
                                     onClick={handleExportMarkdown}
                                     disabled={!hasLoadedExportRows}
-                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary enabled:hover:bg-accent-primary/15 enabled:hover:text-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary enabled:hover:bg-surface-tertiary enabled:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <FileText size={14} className="shrink-0 opacity-80" />
                                     <span className="flex-1">Markdown</span>
@@ -5567,7 +5579,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                     type="button"
                                     role="menuitem"
                                     onClick={handleExportHtml}
-                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary hover:bg-accent-primary/15 hover:text-accent transition-colors whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                                    className="flex items-center gap-2.5 text-left px-3 py-2 text-sm text-secondary hover:bg-surface-tertiary hover:text-primary transition-colors whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                                 >
                                     <FileCode size={14} className="shrink-0 opacity-80" />
                                     <span className="flex-1">{t('editor.exportLoadedHtml')}</span>
@@ -5590,7 +5602,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                 <ChevronDown size={12} className="text-muted shrink-0" />
                             </button>
                             {isDbDropdownOpen && (
-                                <div className="absolute top-full right-0 mt-1 min-w-[140px] max-w-[calc(100cqw-1rem)] max-h-[280px] overflow-y-auto bg-surface-secondary border border-strong rounded shadow-xl z-50 flex flex-col py-1">
+                                <div className="absolute top-full right-0 mt-1 min-w-[140px] max-w-[calc(100cqw-1rem)] max-h-[280px] overflow-y-auto bg-surface-secondary border border-strong rounded-md shadow-xl z-50 flex flex-col py-1">
                                     {selectedDatabases.map((db) => (
                                         <button
                                             key={db}
@@ -6041,16 +6053,51 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                 )}
                                             </span>
 
+                                            {!showResultChart && (
+                                                <HiddenColumnsIndicator
+                                                    columns={activeTab.result.columns}
+                                                    hidden={resultHiddenColumns.hidden}
+                                                    onChange={resultHiddenColumns.setHidden}
+                                                />
+                                            )}
+
                                             {activeTab.result.pagination?.has_more && (
-                                                <span className="px-2 py-0.5 bg-accent-warning/15 text-accent-warning rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-warning/50 whitespace-nowrap shrink-0">
+                                                <span className="px-2 py-0.5 bg-accent-warning/15 text-accent-warning rounded text-[10px] font-medium border border-accent-warning/50 whitespace-nowrap shrink-0">
                                                     {t('editor.autoPaginated')}
                                                 </span>
                                             )}
                                         </div>
 
+                                        {/* Shown for every grid result, not only table results, so
+                                            a transposed tab can always switch back. */}
+                                        {!showResultChart && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    updateTab(activeTab.id, {
+                                                        transposed: !activeTab.transposed,
+                                                    })
+                                                }
+                                                aria-pressed={!!activeTab.transposed}
+                                                aria-label={t('dataGrid.transpose')}
+                                                title={
+                                                    activeTab.transposed
+                                                        ? t('dataGrid.untranspose')
+                                                        : t('dataGrid.transpose')
+                                                }
+                                                className={`ml-auto flex items-center justify-center w-6 h-6 rounded shrink-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
+                                                    activeTab.transposed
+                                                        ? 'text-accent bg-accent-primary/15'
+                                                        : 'text-secondary hover:text-primary hover:bg-surface-secondary'
+                                                }`}
+                                            >
+                                                <TransposeIcon size={14} />
+                                            </button>
+                                        )}
+
                                         {resultChartEnabled && (
                                             <ResultViewToggle
-                                                className="ml-auto"
+                                                className={showResultChart ? 'ml-auto' : undefined}
                                                 view={resultChart.view}
                                                 onChange={resultChart.setView}
                                             />
@@ -6081,7 +6128,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                                     1 || activeTab.isLoading
                                                             }
                                                             onClick={() => runQuery(undefined, 1)}
-                                                            className="hidden @[420px]:block p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed border-l border-strong"
+                                                            className="hidden @[420px]:block p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
                                                             title={t('pagination.firstPage')}
                                                             aria-label={t('pagination.firstPage')}
                                                         >
@@ -6099,7 +6146,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                                         .page - 1,
                                                                 )
                                                             }
-                                                            className="p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed border-l border-strong"
+                                                            className="p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
                                                             title={t('pagination.previousPage')}
                                                             aria-label={t(
                                                                 'pagination.previousPage',
@@ -6130,7 +6177,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                                     activeTab.isLoading
                                                                 }
                                                                 onClick={() => loadCount()}
-                                                                className="p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed border-l border-strong"
+                                                                className="p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
                                                                 title={t('editor.loadRowCount')}
                                                             >
                                                                 {isCountLoading ? (
@@ -6143,7 +6190,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                                 )}
                                                             </button>
                                                         ) : (
-                                                            <span className="hidden @[440px]:inline px-2 py-1 text-secondary text-xs font-medium border-l border-strong whitespace-nowrap">
+                                                            <span className="hidden @[440px]:inline px-2 py-1 text-secondary text-xs font-medium whitespace-nowrap">
                                                                 {t('editor.rowCount', {
                                                                     total: activeTab.result.pagination.total_rows.toLocaleString(),
                                                                 })}
@@ -6162,7 +6209,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                                         .page + 1,
                                                                 )
                                                             }
-                                                            className="p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed border-l border-strong"
+                                                            className="p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
                                                             title={t('pagination.nextPage')}
                                                             aria-label={t('pagination.nextPage')}
                                                         >
@@ -6187,7 +6234,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                                     ),
                                                                 )
                                                             }
-                                                            className="hidden @[420px]:block p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed border-l border-strong"
+                                                            className="hidden @[420px]:block p-1 hover:bg-surface-tertiary text-secondary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
                                                             title={t('pagination.lastPage')}
                                                             aria-label={t('pagination.lastPage')}
                                                         >
@@ -6238,21 +6285,16 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                 <select
                                                     value={copyFormat}
                                                     onChange={(e) =>
-                                                        setCopyFormat(
-                                                            e.target.value as
-                                                                | 'csv'
-                                                                | 'json'
-                                                                | 'sql-insert'
-                                                                | 'markdown',
-                                                        )
+                                                        setCopyFormat(e.target.value as CopyFormat)
                                                     }
-                                                    className="bg-transparent border-none text-[11px] text-secondary hover:text-primary focus:outline-none cursor-pointer appearance-none pr-3 font-medium uppercase tracking-wide"
+                                                    className="bg-transparent border-none text-[11px] text-secondary hover:text-primary focus:outline-none cursor-pointer appearance-none pr-3 font-medium"
                                                     title={t('settings.copyFormat')}
                                                     style={CHEVRON_SELECT_STYLE}
                                                 >
                                                     <option value="csv">CSV</option>
                                                     <option value="json">JSON</option>
                                                     <option value="sql-insert">SQL INSERT</option>
+                                                    <option value="sql-update">SQL UPDATE</option>
                                                     <option value="markdown">Markdown</option>
                                                 </select>
                                                 {copyFormat === 'csv' && (
@@ -6261,7 +6303,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                         onChange={(e) =>
                                                             setCsvDelimiter(e.target.value)
                                                         }
-                                                        className="bg-transparent border-none text-[11px] text-secondary hover:text-primary focus:outline-none cursor-pointer appearance-none pr-3 font-medium tracking-wide"
+                                                        className="bg-transparent border-none text-[11px] text-secondary hover:text-primary focus:outline-none cursor-pointer appearance-none pr-3 font-medium"
                                                         title={t('settings.csvDelimiter')}
                                                         style={CHEVRON_SELECT_STYLE}
                                                     >
@@ -6295,7 +6337,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                             }
                                                             className="w-3 h-3 cursor-pointer accent-accent-primary"
                                                         />
-                                                        <span className="hidden @[440px]:inline font-medium tracking-wide whitespace-nowrap">
+                                                        <span className="hidden @[440px]:inline font-medium whitespace-nowrap">
                                                             {t('settings.csvHeaders')}
                                                         </span>
                                                     </label>
@@ -6309,7 +6351,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                         )}
 
                                         {showPendingChangesBar && (
-                                            <div className="ml-auto flex items-center my-1 bg-surface-secondary/30 border border-default rounded-xl overflow-hidden cursor-pointer">
+                                            <div className="ml-auto flex items-center my-1 bg-surface-secondary border border-subtle rounded-lg overflow-hidden cursor-pointer">
                                                 {hasPendingChanges && (
                                                     <>
                                                         <label className="flex items-center gap-2 px-2.5 @[560px]:px-4 py-2 cursor-pointer select-none group hover:bg-surface-secondary transition-colors">
@@ -6468,6 +6510,7 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                 copyFormat={copyFormat}
                                                 csvDelimiter={csvDelimiter}
                                                 csvIncludeHeaders={csvIncludeHeaders}
+                                                transposed={!!activeTab.transposed}
                                                 sortClause={activeTab.sortClause}
                                                 onSort={
                                                     activeTab.type === 'table' &&
@@ -6494,6 +6537,10 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                                 canRedo={canRedoGrid(activeTab.gridHistory)}
                                                 onBeginBatchEdit={handleBeginBatchEdit}
                                                 onEndBatchEdit={handleEndBatchEdit}
+                                                hiddenColumns={resultHiddenColumns.hidden}
+                                                onHiddenColumnsChange={
+                                                    resultHiddenColumns.setHidden
+                                                }
                                             />
                                         </div>
                                     )}
@@ -6716,6 +6763,18 @@ export const Editor = ({commandScopeId}: EditorProps) => {
                                               icon: Copy,
                                               action: () =>
                                                   handleDuplicateTab(tabContextMenu.tabId),
+                                          },
+                                      ]
+                                    : []),
+                                ...(contextTab
+                                    ? [
+                                          {
+                                              label: contextTab.pinned
+                                                  ? t('editor.unpinTab')
+                                                  : t('editor.pinTab'),
+                                              icon: contextTab.pinned ? PinOff : Pin,
+                                              action: () =>
+                                                  setTabPinned(contextTab.id, !contextTab.pinned),
                                           },
                                       ]
                                     : []),

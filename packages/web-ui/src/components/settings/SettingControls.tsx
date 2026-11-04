@@ -147,7 +147,7 @@ export function SettingButtonGroup<T extends string | number>({
                         'px-4 py-2 rounded-lg text-sm font-medium transition-all border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                         mono && 'font-mono',
                         value === opt.value
-                            ? 'bg-accent-primary border-accent-primary text-inverse shadow-lg shadow-accent-primary/20'
+                            ? 'bg-accent-primary border-accent-primary text-inverse'
                             : 'bg-base border-default text-muted hover:border-strong hover:text-primary',
                     )}
                 >
@@ -223,7 +223,7 @@ export function SettingNumberInput({
                 step={step}
                 value={value}
                 onChange={(e) => onChange(parseInt(e.target.value) || fallback)}
-                className="bg-base border border-strong rounded px-3 py-2 text-primary w-24 focus:outline-none focus:border-focus transition-colors"
+                className="bg-input border border-strong rounded-sm px-3 h-[26px] py-0 text-primary w-24 focus:outline-none focus:border-focus transition-colors"
             />
             {suffix && <span className="text-sm text-muted">{suffix}</span>}
         </div>

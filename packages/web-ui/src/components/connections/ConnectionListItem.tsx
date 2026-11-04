@@ -95,7 +95,7 @@ export const ConnectionListItem = ({
             onMouseDown={onMouseDown}
             data-connection-id={conn.id}
             className={clsx(
-                'relative group flex items-center gap-3 px-3.5 py-2 rounded-xl border transition-all duration-150 cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                'relative group flex items-center gap-3 px-3 py-1.5 rounded-sm border border-transparent hover:bg-surface-hover transition-colors duration-150 cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                 !isDriverEnabled && 'opacity-60 cursor-not-allowed',
                 isConnecting && 'pointer-events-none',
                 selected && 'ring-2 ring-accent-primary/70',
@@ -111,6 +111,11 @@ export const ConnectionListItem = ({
                     )}
                 />
             )}
+            <span
+                aria-hidden="true"
+                className="absolute left-1.5 top-1/2 -translate-y-1/2 h-[30px] w-[3px] rounded-sm"
+                style={{backgroundColor: driverColor}}
+            />
             {onToggleSelect && (
                 <SelectionCheckbox
                     selected={selected}
@@ -119,14 +124,16 @@ export const ConnectionListItem = ({
                 />
             )}
             <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+                className="w-8 h-8 rounded-md flex items-center justify-center text-white shrink-0"
                 style={{backgroundColor: driverColor}}
             >
                 {getConnectionIcon(conn, driverManifest, 14)}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-primary truncate leading-snug">{conn.name}</p>
-                <p className="text-[11px] text-muted truncate leading-snug mt-0.5">{subtitle}</p>
+                <p className="font-medium text-sm text-primary truncate leading-snug">
+                    {conn.name}
+                </p>
+                <p className="text-xs text-muted truncate leading-snug mt-0.5">{subtitle}</p>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
                 <StatusBadge
@@ -141,7 +148,7 @@ export const ConnectionListItem = ({
                     tags={tags}
                 />
             </div>
-            <div className="flex items-center gap-0.5 shrink-0 pl-1 border-l border-default/50">
+            <div className="flex items-center gap-0.5 shrink-0 pl-1 border-l border-subtle">
                 <ActionButtons
                     conn={conn}
                     isOpen={isOpen}
