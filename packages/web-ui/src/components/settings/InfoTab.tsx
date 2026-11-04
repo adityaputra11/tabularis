@@ -78,7 +78,7 @@ export function InfoTab() {
     return (
         <div>
             {/* Hero */}
-            <div className="bg-gradient-to-br from-accent-primary/10 to-elevated border border-accent-primary/20 rounded-2xl p-8 text-center relative overflow-hidden mb-8">
+            <div className="bg-elevated border border-accent-primary/20 rounded-md p-8 text-center relative overflow-hidden mb-8">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <Code2 size={120} />
                 </div>
@@ -87,7 +87,7 @@ export function InfoTab() {
                     <img
                         src="/logo.svg"
                         alt="tabularis"
-                        className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg shadow-accent-primary/30"
+                        className="w-16 h-16 rounded-md mx-auto mb-4"
                         style={{
                             backgroundColor: !currentTheme?.id?.includes('-light')
                                 ? currentTheme?.colors?.surface?.secondary || '#334155'
@@ -144,7 +144,7 @@ export function InfoTab() {
                 icon={<Download size={14} className="text-muted" />}
             >
                 <div className="space-y-4 pt-3">
-                    <div className="rounded-2xl border border-strong bg-elevated p-4">
+                    <div className="rounded-md border border-strong bg-elevated p-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-3 min-w-0">
                                 <div
@@ -219,7 +219,7 @@ export function InfoTab() {
                                             type="button"
                                             onClick={() => downloadAndInstall()}
                                             disabled={isDownloading}
-                                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent-primary text-inverse text-xs font-semibold shadow-sm hover:bg-accent-primary/90 disabled:opacity-60 transition-colors"
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent-primary text-inverse text-xs font-semibold hover:bg-accent-primary/90 disabled:opacity-60 transition-colors"
                                         >
                                             {isDownloading ? (
                                                 <>
@@ -342,7 +342,7 @@ export function InfoTab() {
                 icon={<Info size={14} className="text-muted" />}
                 description={t('settings.roadmapDesc')}
             >
-                <div className="bg-elevated border border-default rounded-xl overflow-hidden mt-3">
+                <div className="bg-elevated border border-default rounded-md overflow-hidden mt-3">
                     <div className="divide-y divide-default">
                         {ROADMAP.map((item, i) => {
                             const content = (

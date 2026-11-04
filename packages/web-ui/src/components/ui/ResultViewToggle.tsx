@@ -27,7 +27,7 @@ export function ResultViewToggle({view, onChange, className}: ResultViewTogglePr
             role="group"
             aria-label={t('editor.resultChart.viewLabel')}
             className={clsx(
-                'flex items-center bg-surface-secondary rounded border border-strong shrink-0 overflow-hidden',
+                'flex items-center bg-surface-secondary rounded-sm border border-default shrink-0 overflow-hidden',
                 className,
             )}
         >
@@ -48,10 +48,10 @@ export function ResultViewToggle({view, onChange, className}: ResultViewTogglePr
                         onFocus={option === 'chart' ? preloadResultChart : undefined}
                         className={clsx(
                             'flex items-center gap-1 px-1.5 py-1 text-[11px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
-                            i > 0 && 'border-l border-strong',
+                            i > 0 && 'border-l border-default',
                             active
                                 ? 'bg-accent-primary/15 text-accent'
-                                : 'text-secondary hover:text-primary hover:bg-surface-tertiary',
+                                : 'text-secondary hover:text-primary hover:bg-surface-hover',
                         )}
                     >
                         <Icon size={13} aria-hidden="true" />

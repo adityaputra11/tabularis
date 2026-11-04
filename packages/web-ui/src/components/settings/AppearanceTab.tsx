@@ -32,13 +32,13 @@ export function AppearanceTab() {
     return (
         <div>
             {/* Sub-tab switcher */}
-            <div className="flex gap-1 p-1 bg-surface-secondary/40 rounded-xl border border-default w-fit mb-6">
+            <div className="flex gap-1 p-1 bg-surface-secondary/40 rounded-md border border-default w-fit mb-6">
                 <button
                     onClick={() => setSubTab('general')}
                     className={clsx(
                         'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                         subTab === 'general'
-                            ? 'bg-elevated text-primary shadow-sm'
+                            ? 'bg-elevated text-primary'
                             : 'text-muted hover:text-primary',
                     )}
                 >
@@ -50,7 +50,7 @@ export function AppearanceTab() {
                     className={clsx(
                         'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                         subTab === 'editor'
-                            ? 'bg-elevated text-primary shadow-sm'
+                            ? 'bg-elevated text-primary'
                             : 'text-muted hover:text-primary',
                     )}
                 >

@@ -125,7 +125,7 @@ export const ConnectionCard = ({
                 iconColor={driverColor}
             >
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <span className="font-bold text-sm text-primary leading-snug truncate">
+                    <span className="font-medium text-sm text-primary leading-snug truncate">
                         {conn.name}
                     </span>
                     <div className="shrink-0">
@@ -144,7 +144,7 @@ export const ConnectionCard = ({
                         tags={tags}
                     />
                 </div>
-                <p className="text-[11px] text-muted truncate">{subtitle}</p>
+                <p className="text-xs text-muted truncate">{subtitle}</p>
             </CompactCardHeader>
             <CompactCardFooter className="gap-0.5 opacity-40 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150">
                 <ActionButtons

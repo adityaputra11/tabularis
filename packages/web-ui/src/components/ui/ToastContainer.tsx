@@ -39,10 +39,10 @@ export const ToastContainer = ({toasts, onDismiss}: ToastContainerProps) => {
                     <div
                         key={toast.id}
                         role="status"
-                        className="animate-slide-in-right flex items-start gap-3 w-[340px] p-3 bg-elevated border border-strong rounded-lg shadow-2xl"
+                        className="animate-slide-in-right flex items-start gap-3 w-[340px] p-3 bg-overlay border border-default rounded-md shadow-lg"
                     >
                         <div
-                            className="p-1.5 rounded-lg shrink-0"
+                            className="p-1.5 rounded-md shrink-0"
                             style={{
                                 backgroundColor: `color-mix(in srgb, ${accent} 14%, var(--bg-elevated))`,
                                 color: `color-mix(in srgb, ${accent} 35%, CanvasText)`,

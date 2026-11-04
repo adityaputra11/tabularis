@@ -50,12 +50,12 @@ describe('ConnectionGroupFolder', () => {
     it('marks a collapsed folder that hides the active connection', () => {
         renderFolder({isCollapsed: true, hasActiveConnection: true});
 
-        expect(screen.getByTestId('rail-indicator')).toHaveClass('h-8');
+        expect(screen.getByTestId('rail-indicator')).toHaveClass('h-5');
     });
 
     it('leaves the marker to the connection itself while expanded', () => {
         renderFolder({hasActiveConnection: true});
 
-        expect(screen.getByTestId('rail-indicator')).toHaveClass('h-4');
+        expect(screen.getByTestId('rail-indicator')).toHaveClass('h-3');
     });
 });

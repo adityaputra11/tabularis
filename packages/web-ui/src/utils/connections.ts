@@ -343,10 +343,10 @@ export function connectionSubtitle(
  * on hover, state tints (active/open) are layered on top by `getCardClass`.
  */
 export const CARD_IDLE_CLASS =
-    'border-strong bg-elevated hover:border-accent-primary/30 hover:bg-surface-primary hover:shadow-md hover:shadow-black/10';
+    'border-default bg-elevated hover:border-strong hover:bg-surface-hover';
 
 /** Resting look for cards that are not themselves clickable (plugins): no accent on hover. */
-export const CARD_RESTING_CLASS = 'border-strong bg-elevated hover:shadow-md hover:shadow-black/10';
+export const CARD_RESTING_CLASS = 'border-default bg-elevated';
 
 /**
  * CSS class string for a connection card/row based on its active/open state.
@@ -357,9 +357,9 @@ export function getCardClass(
     isConnectionOpen: (id: string) => boolean,
 ): string {
     if (activeConnectionId === connId)
-        return 'border-accent-primary/40 bg-accent-primary/5 ring-1 ring-accent-primary/20 shadow-lg shadow-accent-primary/10';
+        return 'border-accent-primary/40 bg-accent-primary/5 ring-1 ring-accent-primary/20';
     if (isConnectionOpen(connId))
-        return 'border-accent-success/35 bg-accent-success/5 ring-1 ring-accent-success/15 shadow-md shadow-accent-success/10';
+        return 'border-accent-success/35 bg-accent-success/5 ring-1 ring-accent-success/15';
     return CARD_IDLE_CLASS;
 }
 

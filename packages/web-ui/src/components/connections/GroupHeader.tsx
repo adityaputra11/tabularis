@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
-import {GripVertical, ChevronRight, Folder, FolderOpen, MoreVertical, Plus} from 'lucide-react';
+import {GripVertical, ChevronRight, FolderOpen, MoreVertical, Plus} from 'lucide-react';
+import {FolderCellsIcon} from '@/components/icons/ExplorerIcons';
 import clsx from 'clsx';
 import type {ConnectionGroup} from '@/contexts/DatabaseContext';
 import type {GroupDropPosition} from '@/utils/connections';
@@ -88,9 +89,9 @@ export const GroupHeader = ({
             className={clsx('text-muted transition-transform', !isCollapsed && 'rotate-90')}
         />
         {isCollapsed ? (
-            <Folder size={16} className="text-accent-warning/70" />
+            <FolderCellsIcon size={16} className="text-accent/70" />
         ) : (
-            <FolderOpen size={16} className="text-accent-warning" />
+            <FolderOpen size={16} className="text-accent" />
         )}
         {editingGroupId === group.id ? (
             <input
@@ -114,7 +115,7 @@ export const GroupHeader = ({
                 }}
                 onClick={(e) => e.stopPropagation()}
                 autoFocus
-                className="px-2 py-0.5 bg-elevated border border-strong rounded text-sm text-primary focus:border-accent-warning/70 focus:outline-none"
+                className="px-2 py-0.5 bg-input border border-default rounded-sm text-sm text-primary focus:border-focus focus:outline-none"
             />
         ) : (
             <span className="text-sm font-semibold text-primary">{group.name}</span>
@@ -127,9 +128,9 @@ export const GroupHeader = ({
                     onCreateSubgroup(group.id);
                 }}
                 title="Add subfolder"
-                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-surface-secondary transition-all"
+                className="opacity-0 group-hover:opacity-100 p-1 rounded-sm hover:bg-surface-hover transition-all"
             >
-                <Plus size={12} className="text-accent-warning" />
+                <Plus size={12} className="text-accent" />
             </button>
         )}
         <button
@@ -137,7 +138,7 @@ export const GroupHeader = ({
                 e.stopPropagation();
                 onOpenContextMenu(e.clientX, e.clientY, group.id);
             }}
-            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-surface-secondary transition-all"
+            className="opacity-0 group-hover:opacity-100 p-1 rounded-sm hover:bg-surface-hover transition-all"
         >
             <MoreVertical size={12} className="text-muted" />
         </button>

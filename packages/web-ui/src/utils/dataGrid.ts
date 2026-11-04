@@ -13,7 +13,7 @@ import {escapeRegExp} from './escape';
 export const USE_DEFAULT_SENTINEL = '__USE_DEFAULT__';
 
 /** Fixed height of a grid row, shared by the row markup and the virtualizer. */
-export const DATA_GRID_ROW_HEIGHT = 35;
+export const DATA_GRID_ROW_HEIGHT = 28;
 
 /** Narrowest a data column can be resized to: its padding plus a few characters. */
 export const DATA_GRID_MIN_COLUMN_WIDTH = 48;
@@ -559,7 +559,7 @@ export function getCellStateClass(params: CellClassParams): string {
     if (isModified) {
         return isJsonCell
             ? 'bg-semantic-modified/25 border-l-2 border-l-semantic-modified'
-            : 'bg-semantic-modified/30 text-primary italic font-medium';
+            : 'bg-semantic-modified/15 text-primary italic font-medium';
     }
 
     return isJsonCell ? '' : 'text-secondary';

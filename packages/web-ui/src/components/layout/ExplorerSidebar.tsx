@@ -1,4 +1,5 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
+import {useScrollbarReveal} from '@/hooks/useScrollbarReveal';
 import {copyTextToClipboard} from '@/utils/clipboard';
 import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
@@ -7,7 +8,6 @@ import {buildDropTableSql} from '@/utils/dropTable';
 import {formatObjectNameForCopy, type ObjectNameCopyFormat} from '@/utils/objectNameCopy';
 import {isPostgresDriver, triggerFunctionName} from '@/utils/triggerSql';
 import {
-    Database,
     Plus,
     FileCode,
     Play,
@@ -46,6 +46,7 @@ import {
     Pencil,
     FolderInput,
 } from 'lucide-react';
+import {DatabaseDotsIcon} from '@/components/icons/ExplorerIcons';
 import {bindPlatformConfirm} from '@/platform/dialogs';
 import {saveSqlFile} from '@/utils/sqlFileTransfer';
 import {toErrorMessage} from '@/utils/errors';
@@ -275,6 +276,7 @@ export const ExplorerSidebar = ({
     );
     const [schemaVersion, setSchemaVersion] = useState(0);
     const sidebarBodyRef = useRef<HTMLDivElement>(null);
+    const handleBodyScroll = useScrollbarReveal();
     const [schemaErrorExpanded, setSchemaErrorExpanded] = useState(false);
     const {copied: schemaErrorCopied, copy: copySchemaError} = useCopyFeedback(1500);
 
@@ -924,7 +926,7 @@ export const ExplorerSidebar = ({
     return (
         <>
             <aside
-                className="bg-base border-r border-default flex flex-col relative shrink-0"
+                className="bg-elevated border-r border-default flex flex-col relative shrink-0"
                 style={{width: sidebarWidth}}
             >
                 {/* Resize Handle */}
@@ -968,9 +970,9 @@ export const ExplorerSidebar = ({
                     </div>
                 )}
 
-                <div className="p-4 border-b border-default font-semibold text-sm text-primary flex items-center justify-between gap-2">
+                <div className="px-3 py-2 min-h-[2.4rem] border-b border-default font-medium text-sm text-primary flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                        <Database size={16} className="text-accent shrink-0" />
+                        <DatabaseDotsIcon size={16} className="text-accent shrink-0" />
                         <div className="flex flex-col min-w-0">
                             <span>{t('sidebar.explorer')}</span>
                             {activeConnectionName && (
@@ -991,7 +993,7 @@ export const ExplorerSidebar = ({
                                         onClick={() =>
                                             setIsActionsDropdownOpen(!isActionsDropdownOpen)
                                         }
-                                        className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title={t('sidebar.actions')}
                                     >
                                         <ChevronDown size={16} />
@@ -1003,13 +1005,13 @@ export const ExplorerSidebar = ({
                                                 className="fixed inset-0 z-40"
                                                 onClick={closeActionsDropdown}
                                             />
-                                            <div className="absolute left-0 top-8 bg-elevated border border-default rounded-lg shadow-lg z-40 py-1 min-w-[200px]">
+                                            <div className="absolute left-0 top-8 bg-overlay border border-default rounded-md z-40 py-1 min-w-[200px]">
                                                 <button
                                                     onClick={() => {
                                                         handleImportDatabase();
                                                         setIsActionsDropdownOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                 >
                                                     <Upload
                                                         size={16}
@@ -1024,7 +1026,7 @@ export const ExplorerSidebar = ({
                                                         });
                                                         setIsActionsDropdownOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                 >
                                                     <Download
                                                         size={16}
@@ -1055,11 +1057,11 @@ export const ExplorerSidebar = ({
                                                         }
                                                         setIsActionsDropdownOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                 >
                                                     <Network
                                                         size={16}
-                                                        className="rotate-90 text-accent-warning shrink-0"
+                                                        className="rotate-90 text-accent shrink-0"
                                                     />
                                                     <span>View Schema Diagram</span>
                                                 </button>
@@ -1069,7 +1071,7 @@ export const ExplorerSidebar = ({
                                                             openUserManagement();
                                                             setIsActionsDropdownOpen(false);
                                                         }}
-                                                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-secondary hover:text-primary transition-colors text-left whitespace-nowrap"
+                                                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-left whitespace-nowrap"
                                                     >
                                                         <UsersRound
                                                             size={16}
@@ -1086,7 +1088,7 @@ export const ExplorerSidebar = ({
                                 <>
                                     <button
                                         onClick={() => handleImportDatabase()}
-                                        className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title={t('dump.importDatabase')}
                                     >
                                         <Upload size={16} />
@@ -1095,7 +1097,7 @@ export const ExplorerSidebar = ({
                                         onClick={() =>
                                             setDumpModal({database: activeDatabaseName ?? ''})
                                         }
-                                        className="text-muted hover:text-accent transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-accent transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title={t('dump.dumpDatabase')}
                                     >
                                         <Download size={16} />
@@ -1117,7 +1119,7 @@ export const ExplorerSidebar = ({
                                                 );
                                             }
                                         }}
-                                        className="text-muted hover:text-accent-warning transition-colors p-1 hover:bg-surface-secondary rounded"
+                                        className="text-muted hover:text-accent transition-colors p-1 hover:bg-surface-hover rounded-md"
                                         title="View Schema Diagram"
                                     >
                                         <Network size={16} className="rotate-90" />
@@ -1125,7 +1127,7 @@ export const ExplorerSidebar = ({
                                     {activeCapabilities?.user_management === true && (
                                         <button
                                             onClick={openUserManagement}
-                                            className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-secondary rounded"
+                                            className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-hover rounded-md"
                                             title={t('userManagement.tabTitle')}
                                         >
                                             <UsersRound size={16} />
@@ -1138,7 +1140,7 @@ export const ExplorerSidebar = ({
                         {isMultiDb && activeCapabilities?.user_management === true && (
                             <button
                                 onClick={openUserManagement}
-                                className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-secondary rounded"
+                                className="text-muted hover:text-accent-success transition-colors p-1 hover:bg-surface-hover rounded-md"
                                 title={t('userManagement.tabTitle')}
                             >
                                 <UsersRound size={16} />
@@ -1146,7 +1148,7 @@ export const ExplorerSidebar = ({
                         )}
                         <button
                             onClick={onCollapse}
-                            className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-secondary rounded"
+                            className="text-muted hover:text-secondary transition-colors p-1 hover:bg-surface-hover rounded-md"
                             title="Collapse Explorer"
                         >
                             <PanelLeftClose size={16} />
@@ -1155,7 +1157,7 @@ export const ExplorerSidebar = ({
                 </div>
 
                 {/* Tab bar */}
-                <div className="flex items-center border-b border-default bg-base px-1">
+                <div className="flex items-center border-b border-default bg-elevated px-1">
                     {[
                         {id: 'structure' as const, icon: Layers, label: t('sidebar.structure')},
                         {
@@ -1205,7 +1207,11 @@ export const ExplorerSidebar = ({
                     })}
                 </div>
 
-                <div ref={sidebarBodyRef} className="flex-1 overflow-y-auto py-2">
+                <div
+                    ref={sidebarBodyRef}
+                    onScroll={handleBodyScroll}
+                    className="flex-1 overflow-y-auto scrollbar-on-scroll py-2"
+                >
                     {/* Favorites tab */}
                     {sidebarTab === 'favorites' && (
                         <div className="animate-fade-in">
@@ -1269,7 +1275,7 @@ export const ExplorerSidebar = ({
                                             className={`block w-full text-left ${indented ? 'pl-6' : 'pl-3'} pr-3 py-1.5 cursor-pointer group transition-colors border-b border-default/30 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                 selectedFavoriteId === q.id
                                                     ? 'bg-surface-secondary'
-                                                    : 'hover:bg-surface-secondary'
+                                                    : 'hover:bg-surface-hover'
                                             }`}
                                             title={q.database ? `[${q.database}] ${q.sql}` : q.sql}
                                         >
@@ -1289,7 +1295,7 @@ export const ExplorerSidebar = ({
                                                     )}
                                                     {q.database && (
                                                         <span className="flex items-center gap-0.5">
-                                                            <Database
+                                                            <DatabaseDotsIcon
                                                                 size={9}
                                                                 className="shrink-0"
                                                             />
@@ -1333,7 +1339,7 @@ export const ExplorerSidebar = ({
                                         'p-1 rounded text-muted hover:text-primary hover:bg-surface-hover opacity-0 group-hover/folder:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus';
                                     return (
                                         <div key={folder.id}>
-                                            <div className="group/folder flex items-center hover:bg-surface-secondary border-b border-default/30">
+                                            <div className="group/folder flex items-center hover:bg-surface-hover border-b border-default/30">
                                                 <button
                                                     type="button"
                                                     aria-expanded={!isCollapsed}
@@ -1448,7 +1454,7 @@ export const ExplorerSidebar = ({
                                                         setFavoritesFilter(e.target.value)
                                                     }
                                                     placeholder={t('sidebar.searchFavorites')}
-                                                    className="w-full pl-6 pr-2 py-1 text-xs bg-surface-secondary border border-default rounded text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
+                                                    className="w-full h-[26px] pl-7 pr-2 text-xs bg-input border border-default rounded-sm text-primary placeholder:text-muted focus:outline-none focus:border-focus"
                                                 />
                                             </div>
                                             <button
@@ -1456,7 +1462,7 @@ export const ExplorerSidebar = ({
                                                 title={t('sidebar.newFolder')}
                                                 aria-label={t('sidebar.newFolder')}
                                                 onClick={() => setFolderModal({folder: null})}
-                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                                             >
                                                 <FolderPlus size={14} />
                                             </button>
@@ -1471,7 +1477,7 @@ export const ExplorerSidebar = ({
                                                         'saved-queries.sql',
                                                     )
                                                 }
-                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+                                                className="p-1.5 rounded text-muted hover:text-primary hover:bg-surface-hover disabled:opacity-40 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                                             >
                                                 <Download size={14} />
                                             </button>
@@ -1485,7 +1491,7 @@ export const ExplorerSidebar = ({
                                         {!isSearching &&
                                             hasFolders &&
                                             folderGroups.unfiled.length > 0 && (
-                                                <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wider border-b border-default/30">
+                                                <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wide border-b border-default/30">
                                                     {t('sidebar.unfiled')}
                                                 </div>
                                             )}
@@ -1497,7 +1503,7 @@ export const ExplorerSidebar = ({
                                               )
                                             : groupedFavorites.map(([groupKey, items]) => (
                                                   <div key={groupKey}>
-                                                      <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wider">
+                                                      <div className="px-3 py-1 text-[10px] font-semibold uppercase text-muted tracking-wide">
                                                           {t(`sidebar.${groupKey}`)}
                                                       </div>
                                                       {items.map((q) =>
@@ -1629,7 +1635,7 @@ export const ExplorerSidebar = ({
                                         {needsSchemaSelection ? (
                                             /* Schema picker (first connect, no saved preference) */
                                             <div className="px-3 py-2">
-                                                <div className="text-xs font-semibold uppercase text-muted tracking-wider mb-2">
+                                                <div className="text-xs font-semibold uppercase text-muted tracking-wide mb-2">
                                                     {t('sidebar.schemas')}
                                                 </div>
                                                 <div className="text-xs text-secondary mb-2">
@@ -1662,8 +1668,8 @@ export const ExplorerSidebar = ({
                                                                     }}
                                                                     className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                         isSelected
-                                                                            ? 'text-primary hover:bg-surface-secondary'
-                                                                            : 'text-muted hover:bg-surface-secondary'
+                                                                            ? 'text-primary hover:bg-surface-hover'
+                                                                            : 'text-muted hover:bg-surface-hover'
                                                                     }`}
                                                                 >
                                                                     <div
@@ -1741,7 +1747,7 @@ export const ExplorerSidebar = ({
                                             <>
                                                 {/* Schema selection header */}
                                                 <div className="flex items-center justify-between px-3 py-1.5">
-                                                    <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                                    <span className="text-xs font-semibold uppercase text-muted tracking-wide">
                                                         {t('sidebar.schemas')} (
                                                         {selectedSchemas.length}/{schemas.length})
                                                     </span>
@@ -1759,7 +1765,7 @@ export const ExplorerSidebar = ({
                                                                 selectedSchemas.length <
                                                                 schemas.length
                                                                     ? 'text-accent bg-accent-primary/10'
-                                                                    : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                                                    : 'text-muted hover:text-secondary hover:bg-surface-hover'
                                                             }`}
                                                             title={t('sidebar.editSchemas')}
                                                         >
@@ -1772,7 +1778,7 @@ export const ExplorerSidebar = ({
                                                                     className="fixed inset-0 z-40"
                                                                     onClick={closeSchemaFilter}
                                                                 />
-                                                                <div className="absolute right-0 top-8 bg-elevated border border-default rounded-lg shadow-lg z-40 py-2 min-w-[200px] max-h-[300px] flex flex-col">
+                                                                <div className="absolute right-0 top-8 bg-overlay border border-default rounded-md z-40 py-2 min-w-[200px] max-h-[300px] flex flex-col">
                                                                     <div className="flex items-center justify-between px-3 pb-2 border-b border-default">
                                                                         <span className="text-xs font-semibold text-secondary">
                                                                             {t(
@@ -1846,8 +1852,8 @@ export const ExplorerSidebar = ({
                                                                                         }}
                                                                                         className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                                             isSelected
-                                                                                                ? 'text-primary hover:bg-surface-secondary'
-                                                                                                : 'text-muted hover:bg-surface-secondary'
+                                                                                                ? 'text-primary hover:bg-surface-hover'
+                                                                                                : 'text-muted hover:bg-surface-hover'
                                                                                         }`}
                                                                                     >
                                                                                         <div
@@ -2116,7 +2122,7 @@ export const ExplorerSidebar = ({
                                     <div>
                                         {/* Database header: label + manage button */}
                                         <div className="flex items-center justify-between px-3 py-1.5">
-                                            <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                            <span className="text-xs font-semibold uppercase text-muted tracking-wide">
                                                 {t('sidebar.databases')} ({selectedDatabases.length}
                                                 )
                                             </span>
@@ -2164,7 +2170,7 @@ export const ExplorerSidebar = ({
                                                                 allAvailableDatabases.length &&
                                                             allAvailableDatabases.length > 0
                                                                 ? 'text-accent bg-accent-primary/10'
-                                                                : 'text-muted hover:text-secondary hover:bg-surface-secondary'
+                                                                : 'text-muted hover:text-secondary hover:bg-surface-hover'
                                                         }`}
                                                         title={t('sidebar.manageDatabases')}
                                                     >
@@ -2177,7 +2183,7 @@ export const ExplorerSidebar = ({
                                                                 className="fixed inset-0 z-40"
                                                                 onClick={closeDbManager}
                                                             />
-                                                            <div className="absolute right-0 top-8 bg-elevated border border-default rounded-lg shadow-lg z-40 py-2 min-w-[200px] max-h-[320px] flex flex-col">
+                                                            <div className="absolute right-0 top-8 bg-overlay border border-default rounded-md z-40 py-2 min-w-[200px] max-h-[320px] flex flex-col">
                                                                 <div className="flex items-center justify-between px-3 pb-2 border-b border-default">
                                                                     <span className="text-xs font-semibold text-secondary">
                                                                         {t(
@@ -2260,8 +2266,8 @@ export const ExplorerSidebar = ({
                                                                                         }}
                                                                                         className={`flex w-full text-left items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus ${
                                                                                             isSelected
-                                                                                                ? 'text-primary hover:bg-surface-secondary'
-                                                                                                : 'text-muted hover:bg-surface-secondary'
+                                                                                                ? 'text-primary hover:bg-surface-hover'
+                                                                                                : 'text-muted hover:bg-surface-hover'
                                                                                         }`}
                                                                                     >
                                                                                         <div
@@ -2371,7 +2377,7 @@ export const ExplorerSidebar = ({
                                             <div className="relative flex items-center">
                                                 <Search
                                                     size={11}
-                                                    className="absolute left-2 text-muted pointer-events-none"
+                                                    className="absolute left-2.5 text-muted pointer-events-none"
                                                 />
                                                 <input
                                                     autoCorrect="off"
@@ -2382,12 +2388,12 @@ export const ExplorerSidebar = ({
                                                     value={dbFilter}
                                                     onChange={(e) => setDbFilter(e.target.value)}
                                                     placeholder={t('sidebar.filterDatabases')}
-                                                    className="w-full bg-surface-secondary text-xs text-secondary placeholder:text-muted rounded pl-6 pr-6 py-1 border border-default focus:outline-none focus:border-focus/50"
+                                                    className="w-full h-[26px] bg-input text-xs text-secondary placeholder:text-muted rounded-sm pl-7 pr-7 border border-default focus:outline-none focus:border-focus"
                                                 />
                                                 {dbFilter && (
                                                     <button
                                                         onClick={() => setDbFilter('')}
-                                                        className="absolute right-1.5 text-muted hover:text-primary"
+                                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted hover:text-primary hover:bg-surface-hover"
                                                     >
                                                         <X size={11} />
                                                     </button>
@@ -2582,7 +2588,7 @@ export const ExplorerSidebar = ({
                                     /* Nested database -> schema -> table layout (PostgreSQL browsing several databases) */
                                     <div>
                                         <div className="flex items-center justify-between px-3 py-1.5">
-                                            <span className="text-xs font-semibold uppercase text-muted tracking-wider">
+                                            <span className="text-xs font-semibold uppercase text-muted tracking-wide">
                                                 {t('sidebar.databases')} ({selectedDatabases.length}
                                                 )
                                             </span>
@@ -2592,7 +2598,7 @@ export const ExplorerSidebar = ({
                                             <div className="relative flex items-center">
                                                 <Search
                                                     size={11}
-                                                    className="absolute left-2 text-muted pointer-events-none"
+                                                    className="absolute left-2.5 text-muted pointer-events-none"
                                                 />
                                                 <input
                                                     autoCorrect="off"
@@ -2603,12 +2609,12 @@ export const ExplorerSidebar = ({
                                                     value={dbFilter}
                                                     onChange={(e) => setDbFilter(e.target.value)}
                                                     placeholder={t('sidebar.filterDatabases')}
-                                                    className="w-full bg-surface-secondary text-xs text-secondary placeholder:text-muted rounded pl-6 pr-6 py-1 border border-default focus:outline-none focus:border-focus/50"
+                                                    className="w-full h-[26px] bg-input text-xs text-secondary placeholder:text-muted rounded-sm pl-7 pr-7 border border-default focus:outline-none focus:border-focus"
                                                 />
                                                 {dbFilter && (
                                                     <button
                                                         onClick={() => setDbFilter('')}
-                                                        className="absolute right-1.5 text-muted hover:text-primary"
+                                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted hover:text-primary hover:bg-surface-hover"
                                                     >
                                                         <X size={11} />
                                                     </button>
@@ -2809,7 +2815,7 @@ export const ExplorerSidebar = ({
                                                     : activeDatabaseName;
                                             return dbLabel ? (
                                                 <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-default">
-                                                    <Database
+                                                    <DatabaseDotsIcon
                                                         size={14}
                                                         className="text-accent shrink-0"
                                                     />
@@ -2845,7 +2851,7 @@ export const ExplorerSidebar = ({
                                                             e.stopPropagation();
                                                             if (refreshTables) refreshTables();
                                                         }}
-                                                        className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                        className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                         title={
                                                             t('sidebar.refreshTables') ||
                                                             'Refresh Tables'
@@ -2862,7 +2868,7 @@ export const ExplorerSidebar = ({
                                                                     schema: null,
                                                                 });
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title="Create New Table"
                                                         >
                                                             <Plus size={14} />
@@ -3075,7 +3081,7 @@ export const ExplorerSidebar = ({
                                                                 e.stopPropagation();
                                                                 if (refreshViews) refreshViews();
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.refreshViews') ||
                                                                 'Refresh Views'
@@ -3091,7 +3097,7 @@ export const ExplorerSidebar = ({
                                                                     isNewView: true,
                                                                 });
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.createView') ||
                                                                 'Create New View'
@@ -3142,7 +3148,7 @@ export const ExplorerSidebar = ({
                                                                 if (refreshTriggers)
                                                                     refreshTriggers();
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.refreshTriggers') ||
                                                                 'Refresh Triggers'
@@ -3158,7 +3164,7 @@ export const ExplorerSidebar = ({
                                                                     isNewTrigger: true,
                                                                 });
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.createTrigger') ||
                                                                 'Create New Trigger'
@@ -3174,7 +3180,7 @@ export const ExplorerSidebar = ({
                                                         <div className="relative flex items-center">
                                                             <Search
                                                                 size={11}
-                                                                className="absolute left-2 text-muted pointer-events-none"
+                                                                className="absolute left-2.5 text-muted pointer-events-none"
                                                             />
                                                             <input
                                                                 autoCorrect="off"
@@ -3191,7 +3197,7 @@ export const ExplorerSidebar = ({
                                                                 placeholder={t(
                                                                     'sidebar.filterTriggers',
                                                                 )}
-                                                                className="w-full bg-surface-secondary text-xs text-secondary placeholder:text-muted rounded pl-6 pr-6 py-1 border border-default focus:outline-none focus:border-focus/50"
+                                                                className="w-full h-[26px] bg-input text-xs text-secondary placeholder:text-muted rounded-sm pl-7 pr-7 border border-default focus:outline-none focus:border-focus"
                                                                 onClick={(e) => e.stopPropagation()}
                                                             />
                                                             {triggerFilterFlat && (
@@ -3200,7 +3206,7 @@ export const ExplorerSidebar = ({
                                                                         e.stopPropagation();
                                                                         setTriggerFilterFlat('');
                                                                     }}
-                                                                    className="absolute right-1.5 text-muted hover:text-primary"
+                                                                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted hover:text-primary hover:bg-surface-hover"
                                                                 >
                                                                     <X size={11} />
                                                                 </button>
@@ -3265,7 +3271,7 @@ export const ExplorerSidebar = ({
                                                                 if (refreshRoutines)
                                                                     refreshRoutines();
                                                             }}
-                                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                             title={
                                                                 t('sidebar.refreshRoutines') ||
                                                                 'Refresh Routines'
@@ -3285,7 +3291,7 @@ export const ExplorerSidebar = ({
                                                                         t('routines.newRoutine'),
                                                                     );
                                                                 }}
-                                                                className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                                className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                                 title={t('routines.newRoutine')}
                                                             >
                                                                 <Plus size={14} />

@@ -257,8 +257,8 @@ export const MemoRow = React.memo(function MemoRow(rowCtx: MemoRowProps) {
                           : isPendingDelete
                             ? 'bg-semantic-deleted/10 opacity-60'
                             : isZebraStripedRow(rowIndex, zebraStripes)
-                              ? 'bg-surface-secondary/40 hover:bg-surface-secondary/90'
-                              : 'hover:bg-surface-secondary/50'
+                              ? 'bg-elevated/60 hover:bg-surface-hover'
+                              : 'hover:bg-surface-hover'
                 }`}
             >
                 <td
@@ -272,7 +272,7 @@ export const MemoRow = React.memo(function MemoRow(rowCtx: MemoRowProps) {
                             openInSidebar(rowIndex);
                         }
                     }}
-                    className={`px-2 py-1.5 text-xs text-center border-b border-r border-default sticky left-0 z-10 cursor-pointer select-none w-[50px] min-w-[50px] ${
+                    className={`px-2 py-1 text-xs text-center border-b border-subtle sticky left-0 z-10 cursor-pointer select-none w-[44px] min-w-[44px] ${
                         isInsertion
                             ? isSelected
                                 ? 'bg-accent-primary/20 text-accent font-bold'
@@ -282,7 +282,7 @@ export const MemoRow = React.memo(function MemoRow(rowCtx: MemoRowProps) {
                               : isSelected
                                 ? 'bg-accent-primary/20 text-accent font-bold'
                                 : isZebraStripedRow(rowIndex, zebraStripes)
-                                  ? 'bg-[color-mix(in_srgb,var(--surface-secondary)_40%,var(--bg-base))] text-muted hover:bg-surface-tertiary'
+                                  ? 'bg-elevated text-muted hover:bg-surface-tertiary'
                                   : 'bg-base text-muted hover:bg-surface-secondary'
                     }`}
                 >
@@ -451,7 +451,7 @@ export const MemoRow = React.memo(function MemoRow(rowCtx: MemoRowProps) {
                                 handleContextMenu(e, rowOriginal, rowIndex, colIndex, colName)
                             }
                             style={isFrozen ? {left: frozenFirstColumnLeft} : undefined}
-                            className={`px-4 py-1.5 text-sm border-b border-r border-default last:border-r-0 font-result ${isEditing ? (isFrozen ? '' : 'relative') : 'whitespace-nowrap truncate max-w-[300px]'} ${frozenClass} ${fkForPreview ? 'cursor-pointer' : 'cursor-text'} ${stateClass} ${selectedColIndices.has(colIndex) || (rangeColBounds !== null && colIndex >= rangeColBounds.minCol && colIndex <= rangeColBounds.maxCol) ? 'bg-accent-primary/15' : ''} ${focusClass}`}
+                            className={`px-3 py-1 text-xs border-b border-subtle font-result ${isEditing ? (isFrozen ? '' : 'relative') : 'whitespace-nowrap truncate max-w-[300px]'} ${frozenClass} ${fkForPreview ? 'cursor-pointer' : 'cursor-text'} ${stateClass} ${selectedColIndices.has(colIndex) || (rangeColBounds !== null && colIndex >= rangeColBounds.minCol && colIndex <= rangeColBounds.maxCol) ? 'bg-accent-primary/15 ring-1 ring-inset ring-accent-primary/60' : ''} ${focusClass}`}
                             title={
                                 // The hover tooltip would leak the real value of a masked cell.
                                 !isEditing && !isMasked
@@ -576,7 +576,7 @@ export const MemoRow = React.memo(function MemoRow(rowCtx: MemoRowProps) {
                                         // Measure with the same font the textarea renders in
                                         // (the "Result font" setting), otherwise a proportional
                                         // font would be sized with monospace metrics.
-                                        ctx.font = `14px ${resolveResultFontFamily()}`;
+                                        ctx.font = `12px ${resolveResultFontFamily()}`;
                                     }
                                     const longestLineWidth = ctx
                                         ? Math.max(

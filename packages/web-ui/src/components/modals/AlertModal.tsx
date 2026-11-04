@@ -36,7 +36,7 @@ export const AlertModal = ({isOpen, onClose, title, message, kind}: AlertModalPr
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose}>
-            <div className="bg-elevated border border-strong rounded-xl shadow-2xl w-[480px] overflow-hidden flex flex-col">
+            <div className="bg-elevated border border-default rounded-lg shadow-lg w-[480px] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-default bg-base">
                     <div className="flex items-center gap-3">

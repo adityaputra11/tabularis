@@ -43,6 +43,7 @@ import {
     Eye,
     EyeOff,
     Hash,
+    Key,
     ListChecks,
     PencilLine,
     ArrowDownToLine,
@@ -152,8 +153,8 @@ import {JumpToColumnModal} from '@/components/modals/JumpToColumnModal';
 import {SetCellsValueModal} from '@/components/modals/SetCellsValueModal';
 import {KeybindingsContext} from '@/contexts/KeybindingsContext';
 
-/** Horizontal padding of a grid cell (px-4 on both sides) plus its 1px border. */
-const FIT_COLUMN_PADDING = 33;
+/** Horizontal padding of a grid cell (px-3 on both sides) plus its 1px border. */
+const FIT_COLUMN_PADDING = 25;
 export interface DataGridCommandTarget {
     getResultCommands: () => ResultCommands;
     isEditing: () => boolean;
@@ -391,7 +392,7 @@ export const DataGrid = React.memo(function DataGrid({
     } = useJsonEditorActivity();
     const colorByType = settings.resultColorByType ?? false;
     const stickyColumnHeaders = settings.stickyColumnHeaders ?? true;
-    const zebraStripes = settings.resultZebraStripes ?? false;
+    const zebraStripes = settings.resultZebraStripes ?? true;
     const defaultSortDirection = settings.defaultSortDirection ?? 'asc';
     const copyNullLabel = settings.copyNullLabel ?? 'null';
 
@@ -1458,7 +1459,19 @@ export const DataGrid = React.memo(function DataGrid({
                                 }}
                                 title={hasMetadataTooltip ? undefined : t('dataGrid.selectColumn')}
                             >
+                                {pkColumnSet.has(colName.toLowerCase()) ? (
+                                    <Key size={12} className="shrink-0 text-semantic-pk" />
+                                ) : (
+                                    fksByColumn.has(colName) && (
+                                        <Key size={12} className="shrink-0 text-semantic-fk" />
+                                    )
+                                )}
                                 <span className="truncate">{colName}</span>
+                                {colType && (
+                                    <span className="truncate font-normal text-muted">
+                                        {colType}
+                                    </span>
+                                )}
                                 {onSort && (
                                     <button
                                         type="button"
@@ -1521,6 +1534,8 @@ export const DataGrid = React.memo(function DataGrid({
             onSort,
             columnTypeMap,
             columnCommentMap,
+            pkColumnSet,
+            fksByColumn,
         ],
     );
 
@@ -1663,7 +1678,7 @@ export const DataGrid = React.memo(function DataGrid({
             const cellStyle = sampleCell ? getComputedStyle(sampleCell) : null;
             ctx.font = cellStyle?.fontSize
                 ? `${cellStyle.fontWeight} ${cellStyle.fontSize} ${cellStyle.fontFamily}`
-                : `14px ${resolveResultFontFamily()}`;
+                : `12px ${resolveResultFontFamily()}`;
             // With no rendered body cell (an empty grid), the header cell has the
             // same rem-based padding, so it still follows the font-size setting.
             const paddingStyle = cellStyle ?? (headerCell ? getComputedStyle(headerCell) : null);
@@ -3243,7 +3258,7 @@ export const DataGrid = React.memo(function DataGrid({
                 tabIndex={0}
                 onKeyDown={handleGridKeyDown}
                 onScroll={handleScroll}
-                className="h-full overflow-auto border border-default rounded bg-elevated relative focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="h-full overflow-auto border border-default rounded bg-base relative focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 style={
                     frozenLayout ? {scrollPaddingLeft: frozenLayout.scrollPaddingLeft} : undefined
                 }
@@ -3263,7 +3278,7 @@ export const DataGrid = React.memo(function DataGrid({
                         </colgroup>
                     )}
                     <thead
-                        className={`bg-base z-10 shadow-sm ${stickyColumnHeaders ? 'sticky top-0' : ''}`}
+                        className={`bg-base z-10 border-b border-default ${stickyColumnHeaders ? 'sticky top-0' : ''}`}
                     >
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id} ref={theadRowRef}>
@@ -3274,7 +3289,7 @@ export const DataGrid = React.memo(function DataGrid({
                                             ? t('dataGrid.deselectAll')
                                             : t('dataGrid.selectAll')
                                     }
-                                    className="px-2 py-2 text-xs font-semibold text-muted border-b border-r border-default bg-base sticky left-0 z-20 text-center select-none w-[50px] min-w-[50px] cursor-pointer hover:bg-elevated"
+                                    className="px-2 py-1.5 text-xs font-medium text-muted border-b border-default bg-base sticky left-0 z-20 text-center select-none w-[44px] min-w-[44px] cursor-pointer hover:bg-elevated"
                                 >
                                     #
                                 </th>
@@ -3291,7 +3306,7 @@ export const DataGrid = React.memo(function DataGrid({
                                             frozenFirstColumnLeft !== null && headerColIndex === 0
                                                 ? FROZEN_HEADER_CELL_CLASS
                                                 : 'relative'
-                                        } px-4 py-2 text-xs font-semibold tracking-wider border-b border-r border-default last:border-r-0 whitespace-nowrap ${
+                                        } px-3 py-1.5 text-xs font-semibold border-b border-default whitespace-nowrap ${
                                             selectedColIndices.has(headerColIndex)
                                                 ? 'text-primary bg-accent-primary/20'
                                                 : 'text-secondary'

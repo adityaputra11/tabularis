@@ -154,7 +154,7 @@ describe('SidebarViewItem', () => {
         render(<SidebarViewItem {...defaultProps} activeView="active_users" />);
 
         const viewElement = screen.getByText('active_users').parentElement;
-        expect(viewElement?.className).toContain('text-accent-secondary');
+        expect(viewElement?.className).toContain('bg-accent-primary/15');
     });
 
     it('does not apply active styling when view is not active', () => {

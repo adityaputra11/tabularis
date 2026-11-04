@@ -35,9 +35,9 @@ export function FontPicker({
                 <button
                     onClick={() => onChange(inheritOption.value)}
                     className={clsx(
-                        'p-3 rounded-xl border transition-all text-left',
+                        'p-3 rounded-md border transition-all text-left',
                         value === inheritOption.value
-                            ? 'bg-surface-secondary border-accent-primary shadow-lg shadow-accent-primary/20'
+                            ? 'bg-surface-secondary border-accent-primary'
                             : 'bg-base border-default hover:border-strong',
                     )}
                 >
@@ -62,9 +62,9 @@ export function FontPicker({
                     key={font.name}
                     onClick={() => onChange(font.name)}
                     className={clsx(
-                        'p-3 rounded-xl border transition-all text-left',
+                        'p-3 rounded-md border transition-all text-left',
                         value === font.name
-                            ? 'bg-surface-secondary border-accent-primary shadow-lg shadow-accent-primary/20'
+                            ? 'bg-surface-secondary border-accent-primary'
                             : 'bg-base border-default hover:border-strong',
                     )}
                 >
@@ -85,9 +85,9 @@ export function FontPicker({
             <button
                 onClick={() => (document.getElementById(inputId) as HTMLInputElement)?.focus()}
                 className={clsx(
-                    'p-3 rounded-xl border transition-all text-left relative',
+                    'p-3 rounded-md border transition-all text-left relative',
                     !isPreset
-                        ? 'bg-surface-secondary border-accent-primary shadow-lg shadow-accent-primary/20'
+                        ? 'bg-surface-secondary border-accent-primary'
                         : 'bg-base border-default hover:border-strong',
                 )}
             >
@@ -118,7 +118,7 @@ export function FontPicker({
                             }
                         }}
                         className={clsx(
-                            'w-full bg-base border rounded-lg px-3 py-2 text-sm text-primary focus:outline-none focus:border-focus transition-colors',
+                            'w-full bg-input border rounded-sm px-3 h-[26px] py-0 text-xs text-primary focus:outline-none focus:border-focus transition-colors',
                             !isPreset && customFont === value
                                 ? 'border-accent-primary'
                                 : 'border-strong',

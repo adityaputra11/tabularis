@@ -25,7 +25,7 @@ export function InlineBanner({
     return (
         <div
             role={role}
-            className={clsx('rounded-lg border p-3 flex gap-2 text-xs', TONE_CLASS[tone])}
+            className={clsx('rounded-md border p-3 flex gap-2 text-xs', TONE_CLASS[tone])}
         >
             <span className="shrink-0 mt-0.5">{icon}</span>
             <div className="min-w-0 flex-1">{children}</div>

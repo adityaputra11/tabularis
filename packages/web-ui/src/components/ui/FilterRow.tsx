@@ -153,7 +153,7 @@ export const FilterRow = ({
                         value={filter.value}
                         onChange={(e) => onChange({...filter, value: e.target.value})}
                         onKeyDown={handleValueKeyDown}
-                        className="flex-1 min-w-0 bg-base border border-default rounded px-2 py-1 text-xs text-secondary font-mono focus:outline-none focus:border-focus/60 transition-colors"
+                        className="flex-1 min-w-0 bg-base border border-default rounded-sm h-[26px] px-2 text-xs text-secondary font-mono focus:outline-none focus:border-focus transition-colors"
                         placeholder={t('toolbar.valuePlaceholder')}
                         autoComplete="off"
                     />
@@ -195,7 +195,7 @@ export const FilterRow = ({
                         value={filter.value}
                         onChange={(e) => onChange({...filter, value: e.target.value})}
                         onKeyDown={handleValueKeyDown}
-                        className="flex-1 min-w-0 bg-base border border-default rounded px-2 py-1 text-xs text-secondary font-mono focus:outline-none focus:border-focus/60 transition-colors"
+                        className="flex-1 min-w-0 bg-base border border-default rounded-sm h-[26px] px-2 text-xs text-secondary font-mono focus:outline-none focus:border-focus transition-colors"
                         placeholder={t('toolbar.fromPlaceholder')}
                     />
                     <span className="text-[10px] text-muted shrink-0 font-mono uppercase tracking-wider">
@@ -210,7 +210,7 @@ export const FilterRow = ({
                         value={filter.value2 ?? ''}
                         onChange={(e) => onChange({...filter, value2: e.target.value})}
                         onKeyDown={handleValueKeyDown}
-                        className="flex-1 min-w-0 bg-base border border-default rounded px-2 py-1 text-xs text-secondary font-mono focus:outline-none focus:border-focus/60 transition-colors"
+                        className="flex-1 min-w-0 bg-base border border-default rounded-sm h-[26px] px-2 text-xs text-secondary font-mono focus:outline-none focus:border-focus transition-colors"
                         placeholder={t('toolbar.toPlaceholder')}
                     />
                 </div>

@@ -260,7 +260,7 @@ export function AiTab() {
     return (
         <div className="@container">
             {/* Enable toggle */}
-            <div className="mb-8 rounded-xl border border-default bg-elevated px-5 py-2">
+            <div className="mb-8 rounded-md border border-default bg-elevated px-5 py-2">
                 <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10 text-accent">
                         <Sparkles size={20} aria-hidden="true" />
@@ -317,7 +317,7 @@ export function AiTab() {
                                         setEditingKey(false);
                                     }}
                                     className={clsx(
-                                        'relative flex min-w-0 items-center gap-3 px-3.5 py-3.5 rounded-xl text-left transition-colors border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                                        'relative flex min-w-0 items-center gap-3 px-3.5 py-3.5 rounded-md text-left transition-colors border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                                         isSelected
                                             ? 'bg-accent-primary/10 border-accent-primary text-accent ring-1 ring-accent-primary/30'
                                             : 'bg-elevated border-default text-secondary hover:border-strong hover:bg-surface-secondary hover:text-primary',
@@ -367,7 +367,7 @@ export function AiTab() {
                             />
                         }
                     >
-                        <div className="mt-3 rounded-xl border border-default bg-elevated px-5">
+                        <div className="mt-3 rounded-md border border-default bg-elevated px-5">
                             {/* Status badge */}
                             {settings.aiProvider !== 'chatgpt' && (
                                 <div className="flex items-center gap-2 py-3">
@@ -502,7 +502,7 @@ export function AiTab() {
                                                                     settings.aiProvider,
                                                                 ),
                                                             })}
-                                                            className="w-full bg-base border border-strong rounded-lg pl-3 pr-10 py-2 text-primary text-sm focus:outline-none focus:border-focus transition-colors"
+                                                            className="w-full bg-input border border-strong rounded-sm pl-3 pr-10 h-[26px] py-0 text-primary text-xs focus:outline-none focus:border-focus transition-colors"
                                                             onChange={(e) =>
                                                                 setKeyInput(e.target.value)
                                                             }
@@ -578,7 +578,7 @@ export function AiTab() {
                                             updateSetting('aiCustomOpenaiUrl', e.target.value)
                                         }
                                         placeholder="https://api.example.com/v1"
-                                        className="w-full bg-base border border-strong rounded-lg px-3 py-2 text-primary text-sm focus:outline-none focus:border-focus transition-colors"
+                                        className="w-full bg-input border border-strong rounded-sm px-3 h-[26px] py-0 text-primary text-xs focus:outline-none focus:border-focus transition-colors"
                                     />
                                     <p className="text-xs text-muted">
                                         {t('settings.ai.endpointUrlDesc')}
@@ -650,7 +650,7 @@ export function AiTab() {
                                                     parseInt(e.target.value) || 11434,
                                                 )
                                             }
-                                            className="w-24 bg-base border border-strong rounded-lg px-2 py-1.5 text-sm text-primary focus:outline-none focus:border-focus transition-colors"
+                                            className="w-24 bg-input border border-strong rounded-sm px-2 h-[26px] py-0 text-xs text-primary focus:outline-none focus:border-focus transition-colors"
                                         />
                                         <p className="text-xs text-muted">(Default: 11434)</p>
                                     </div>
@@ -800,7 +800,7 @@ export function AiTab() {
                     title={t('settings.ai.promptCustomization')}
                     description={t('settings.ai.promptHelp')}
                 >
-                    <div className="mt-3 divide-y divide-default rounded-xl border border-default bg-elevated overflow-hidden">
+                    <div className="mt-3 divide-y divide-default rounded-md border border-default bg-elevated overflow-hidden">
                         {(
                             ['system', 'explain', 'cellname', 'tabrename', 'explainplan'] as const
                         ).map((type) => {
@@ -864,7 +864,7 @@ export function AiTab() {
                                                 spellCheck={false}
                                                 value={prompt}
                                                 onChange={(e) => setPrompt(e.target.value)}
-                                                className="w-full h-36 bg-base border border-strong rounded-lg p-3 text-primary text-sm font-mono focus:outline-none focus:border-focus transition-colors resize-y"
+                                                className="w-full h-36 bg-input border border-strong rounded-sm p-3 text-primary text-sm font-mono focus:outline-none focus:border-focus transition-colors resize-y"
                                                 placeholder={t(
                                                     `settings.ai.enter${type === 'system' ? 'System' : type === 'explain' ? 'Explain' : type === 'cellname' ? 'Cellname' : 'Tabrename'}Prompt`,
                                                 )}

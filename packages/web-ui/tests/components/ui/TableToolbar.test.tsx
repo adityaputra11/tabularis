@@ -287,9 +287,9 @@ describe('TableToolbar', () => {
         // The outer wrapper is relative-positioned; the actual toolbar bar is the first child of it
         const wrapper = container.firstChild as HTMLElement;
         const toolbar = wrapper.firstChild as HTMLElement;
-        expect(toolbar).toHaveClass('h-10');
-        expect(toolbar).toHaveClass('bg-elevated');
-        expect(toolbar).toHaveClass('border-y');
+        expect(toolbar).toHaveClass('py-1.5');
+        expect(toolbar).toHaveClass('bg-base');
+        expect(toolbar).toHaveClass('border-b');
         expect(toolbar).toHaveClass('border-default');
     });
 

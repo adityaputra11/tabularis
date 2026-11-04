@@ -7,7 +7,7 @@ describe('RailIndicator', () => {
         render(<RailIndicator isActive={true} />);
 
         const indicator = screen.getByTestId('rail-indicator');
-        expect(indicator).toHaveClass('h-8', 'opacity-100');
+        expect(indicator).toHaveClass('h-5', 'opacity-100');
         expect(indicator).not.toHaveClass('group-hover:opacity-100');
     });
 
@@ -15,8 +15,8 @@ describe('RailIndicator', () => {
         render(<RailIndicator isActive={false} />);
 
         const indicator = screen.getByTestId('rail-indicator');
-        expect(indicator).toHaveClass('h-4', 'opacity-0', 'group-hover:opacity-100');
-        expect(indicator).not.toHaveClass('h-8');
+        expect(indicator).toHaveClass('h-3', 'opacity-0', 'group-hover:opacity-100');
+        expect(indicator).not.toHaveClass('h-5');
     });
 
     it('defaults to left-0 positioning', () => {

@@ -43,7 +43,7 @@ describe('PluginCard compact presentation', () => {
                 iconUrl="https://example.com/registry.png"
             />,
         );
-        expect(container.firstElementChild).toHaveClass('rounded-2xl', 'border', 'group');
+        expect(container.firstElementChild).toHaveClass('rounded-lg', 'border', 'group');
         const iconBox = container.querySelector('.w-11.h-11');
         expect(iconBox).toHaveStyle({backgroundColor: '#336699'});
         expect(iconBox?.querySelector('svg')).not.toBeNull();

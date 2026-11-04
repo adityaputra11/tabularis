@@ -238,7 +238,7 @@ function PluginSettingsForm({pluginId, manifest}: PluginSettingsFormProps) {
     const renderField = (def: PluginSettingDefinition) => {
         const value = dynamicValues[def.key];
         const inputClass =
-            'bg-base border-default text-primary placeholder:text-muted focus:border-focus/50 focus:outline-none';
+            'bg-input border-default text-primary placeholder:text-muted focus:border-focus/50 focus:outline-none';
         const canReset = def.default !== undefined;
         const isDefaultValue = canReset && Object.is(value, def.default);
 
@@ -367,7 +367,7 @@ function PluginSettingsForm({pluginId, manifest}: PluginSettingsFormProps) {
                                     setInterpreter(e.target.value);
                                     setSaved(false);
                                 }}
-                                className="flex-1 bg-base border border-default rounded-lg px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
+                                className="flex-1 bg-input border border-default rounded-sm px-3 h-[26px] py-0 text-xs text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
                             />
                             {platform.negotiation.environment === 'tauri' && (
                                 <button
@@ -408,7 +408,7 @@ function PluginSettingsForm({pluginId, manifest}: PluginSettingsFormProps) {
                                 setCallTimeout(e.target.value);
                                 setSaved(false);
                             }}
-                            className="w-56 bg-base border border-default rounded-lg px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
+                            className="w-56 bg-input border border-default rounded-sm px-3 h-[26px] py-0 text-xs text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
                         />
                         <span className="text-sm text-muted">{t('settings.seconds')}</span>
                         {callTimeout !== '' && (
@@ -454,7 +454,7 @@ function PluginSettingsForm({pluginId, manifest}: PluginSettingsFormProps) {
                                 setShutdownGrace(e.target.value);
                                 setSaved(false);
                             }}
-                            className="w-56 bg-base border border-default rounded-lg px-3 py-2 text-sm text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
+                            className="w-56 bg-input border border-default rounded-sm px-3 h-[26px] py-0 text-xs text-primary placeholder:text-muted focus:outline-none focus:border-focus/50"
                         />
                         <span className="text-sm text-muted">{t('settings.seconds')}</span>
                         {shutdownGrace !== '' && (

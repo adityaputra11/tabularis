@@ -237,7 +237,7 @@ export const DEFAULT_SETTINGS: Settings = {
     resultColorByType: false,
     resultTypeColors: {},
     stickyColumnHeaders: true,
-    resultZebraStripes: false,
+    resultZebraStripes: true,
     defaultSortDirection: 'asc',
     resultFontFamily: 'JetBrains Mono',
     aiEnabled: false,

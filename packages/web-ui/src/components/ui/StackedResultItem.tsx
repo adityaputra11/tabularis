@@ -123,7 +123,7 @@ export function StackedResultItem({
                 aria-expanded={!collapsed}
                 className={clsx(
                     '@container flex items-center gap-2 px-3 py-1.5 text-xs select-none group cursor-pointer',
-                    'bg-elevated hover:bg-surface-secondary transition-colors',
+                    'bg-elevated hover:bg-surface-hover transition-colors',
                     'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
                     collapsed && 'border-b-0',
                 )}
@@ -194,7 +194,7 @@ export function StackedResultItem({
                             e.stopPropagation();
                             startEditing();
                         }}
-                        className="p-0.5 rounded-sm hover:bg-surface-secondary text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                        className="p-0.5 rounded-sm hover:bg-surface-hover text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                         title={t('editor.multiResult.rename')}
                     >
                         <Pencil size={10} />
@@ -209,7 +209,7 @@ export function StackedResultItem({
                             onAiRename();
                         }}
                         disabled={aiRenaming}
-                        className="p-0.5 rounded-sm hover:bg-surface-secondary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity disabled:opacity-50"
+                        className="p-0.5 rounded-sm hover:bg-surface-hover shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity disabled:opacity-50"
                         title={
                             aiRenaming
                                 ? t('editor.multiResult.generatingName')
@@ -231,7 +231,7 @@ export function StackedResultItem({
                             e.stopPropagation();
                             onRerun();
                         }}
-                        className="p-0.5 rounded-sm hover:bg-surface-secondary text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                        className="p-0.5 rounded-sm hover:bg-surface-hover text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                         title={t('editor.multiResult.rerun')}
                     >
                         <Play size={10} fill="currentColor" />
@@ -244,7 +244,7 @@ export function StackedResultItem({
                         e.stopPropagation();
                         onClose();
                     }}
-                    className="p-0.5 rounded-sm hover:bg-surface-secondary text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                    className="p-0.5 rounded-sm hover:bg-surface-hover text-muted hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                     title={t('editor.multiResult.close')}
                 >
                     <X size={12} />
@@ -257,7 +257,7 @@ export function StackedResultItem({
                 {hasResult && (
                     <div className="flex items-center gap-2 min-w-0">
                         {entry.result!.pagination?.has_more && (
-                            <span className="px-1.5 py-0.5 bg-accent-warning/15 text-accent-warning rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-warning/50 whitespace-nowrap shrink-0">
+                            <span className="px-1.5 py-0.5 bg-accent-primary/15 text-accent rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-primary/50 whitespace-nowrap shrink-0">
                                 {t('editor.autoPaginated')}
                             </span>
                         )}
@@ -306,7 +306,7 @@ export function StackedResultItem({
                         <button
                             type="button"
                             aria-expanded={queryExpanded}
-                            className="w-full text-left bg-surface-secondary border-b border-default px-3 py-1 flex items-start gap-2 cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                            className="w-full text-left bg-elevated hover:bg-surface-hover border-b border-default px-3 py-1 flex items-start gap-2 cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                             onClick={() => setQueryExpanded((v) => !v)}
                         >
                             <Code2

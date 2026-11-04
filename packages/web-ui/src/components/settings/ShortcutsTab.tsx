@@ -133,7 +133,7 @@ export function ShortcutsTab() {
                         return (
                             <div
                                 key={cat}
-                                className="bg-elevated border border-default rounded-xl overflow-hidden"
+                                className="bg-elevated border border-default rounded-md overflow-hidden"
                             >
                                 <div className="px-5 py-3 border-b border-default bg-surface-secondary/20">
                                     <h3 className="text-xs font-semibold text-muted uppercase tracking-widest">

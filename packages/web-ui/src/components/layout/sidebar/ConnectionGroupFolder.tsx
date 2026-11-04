@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
-import {Folder, FolderOpen} from 'lucide-react';
+import {FolderOpen} from 'lucide-react';
+import {FolderCellsIcon} from '@/components/icons/ExplorerIcons';
 import {useTranslation} from 'react-i18next';
 import {RailIndicator} from './RailIndicator';
 
@@ -33,13 +34,16 @@ export const ConnectionGroupFolder = ({
                     onClick={onToggle}
                     aria-expanded={!isCollapsed}
                     aria-label={path}
-                    className="flex items-center justify-center w-12 h-10 rounded-lg transition-all text-muted hover:text-secondary hover:bg-surface-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    className="flex items-center justify-center w-10 h-10 rounded-lg transition-all text-muted hover:text-secondary hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 >
                     <div className="relative">
                         {isCollapsed ? (
-                            <Folder size={20} className="text-accent-warning/70" />
+                            <FolderCellsIcon
+                                size={18}
+                                className="text-muted group-hover:text-secondary"
+                            />
                         ) : (
-                            <FolderOpen size={20} className="text-accent-warning" />
+                            <FolderOpen size={18} className="text-accent" />
                         )}
                         <div className="absolute -bottom-1 -right-1.5 min-w-[14px] h-[14px] bg-surface-secondary border border-default rounded-full flex items-center justify-center text-[9px] font-bold text-secondary px-0.5">
                             {count}

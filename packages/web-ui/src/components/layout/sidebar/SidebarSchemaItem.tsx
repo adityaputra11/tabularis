@@ -172,7 +172,7 @@ export const SidebarSchemaItem = ({
                 role="button"
                 tabIndex={0}
                 aria-expanded={isExpanded}
-                className="flex items-center justify-between px-2 py-1.5 group/schema cursor-pointer hover:bg-surface-secondary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="flex items-center justify-between h-[1.6rem] px-2 rounded-sm group/schema cursor-pointer hover:bg-surface-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 onClick={handleToggle}
                 onKeyDown={onActivationKey(handleToggle)}
             >
@@ -187,7 +187,7 @@ export const SidebarSchemaItem = ({
                         className={
                             activeSchema === schemaName
                                 ? 'text-accent shrink-0'
-                                : 'text-muted group-hover/schema:text-accent shrink-0'
+                                : 'text-muted shrink-0'
                         }
                     />
                     <span className="text-sm font-medium text-secondary truncate">
@@ -206,7 +206,7 @@ export const SidebarSchemaItem = ({
                                 e.stopPropagation();
                                 onNewConsole(schemaName, database);
                             }}
-                            className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors mr-0.5"
+                            className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors mr-0.5"
                             title={t('sidebar.newConsole')}
                             aria-label={t('sidebar.newConsole')}
                         >
@@ -217,7 +217,7 @@ export const SidebarSchemaItem = ({
                                 e.stopPropagation();
                                 onRefreshSchema(schemaName);
                             }}
-                            className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                            className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                             title={t('sidebar.refreshTables') || 'Refresh'}
                             aria-label={t('sidebar.refreshTables') || 'Refresh'}
                         >
@@ -229,7 +229,7 @@ export const SidebarSchemaItem = ({
 
             {/* Schema contents */}
             {isExpanded && (
-                <div className="ml-3 border-l border-default">
+                <div className="ml-3 border-l border-subtle">
                     {isLoading && !isLoaded ? (
                         <div className="flex items-center gap-2 p-2 text-xs text-muted">
                             <Loader2 size={12} className="animate-spin" />
@@ -249,7 +249,7 @@ export const SidebarSchemaItem = ({
                                                 e.stopPropagation();
                                                 onCreateTable();
                                             }}
-                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                             title="Create New Table"
                                         >
                                             <Plus size={14} />
@@ -319,7 +319,7 @@ export const SidebarSchemaItem = ({
                                                 e.stopPropagation();
                                                 onCreateView();
                                             }}
-                                            className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                            className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                             title={t('sidebar.createView') || 'Create New View'}
                                         >
                                             <Plus size={14} />
@@ -397,7 +397,7 @@ export const SidebarSchemaItem = ({
                                                     e.stopPropagation();
                                                     onCreateTrigger(schemaName);
                                                 }}
-                                                className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                 title={
                                                     t('sidebar.createTrigger') ||
                                                     'Create New Trigger'
@@ -483,7 +483,7 @@ export const SidebarSchemaItem = ({
                                                     e.stopPropagation();
                                                     onCreateRoutine(e, schemaName);
                                                 }}
-                                                className="p-1 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                                                className="p-1 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                                                 title={t('routines.newRoutine')}
                                             >
                                                 <Plus size={14} />

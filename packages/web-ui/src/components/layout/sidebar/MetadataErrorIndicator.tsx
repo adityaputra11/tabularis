@@ -169,7 +169,7 @@ export const MetadataErrorIndicator = ({error, title}: MetadataErrorIndicatorPro
                                 await copyTextToClipboard(error);
                                 setIsCopied(true);
                             }}
-                            className={`mt-2 flex shrink-0 items-center gap-1.5 self-start rounded px-2 py-1 text-xs font-medium text-secondary transition-colors hover:bg-surface-secondary hover:text-primary ${FOCUS_RING}`}
+                            className={`mt-2 flex shrink-0 items-center gap-1.5 self-start rounded px-2 py-1 text-xs font-medium text-secondary transition-colors hover:bg-surface-hover hover:text-primary ${FOCUS_RING}`}
                         >
                             {isCopied ? (
                                 <Check size={12} className="text-accent-success" />

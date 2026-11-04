@@ -121,10 +121,10 @@ export const SidebarViewItem = ({
                 onDoubleClick={() => onViewDoubleClick(view.name)}
                 onContextMenu={handleContextMenu}
                 className={clsx(
-                    'flex items-center gap-1 pl-1 pr-3 py-1.5 text-sm cursor-pointer group select-none transition-colors border-l-2 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
+                    'flex items-center gap-1 h-[1.6rem] pl-1 pr-3 text-sm rounded-sm cursor-pointer group select-none transition-colors rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
                     activeView === view.name
-                        ? 'bg-[color-mix(in_srgb,var(--accent-secondary)_20%,transparent)] text-accent-secondary border-(--accent-secondary)'
-                        : 'text-secondary hover:bg-surface-secondary border-transparent hover:text-primary',
+                        ? 'bg-accent-primary/15 text-primary'
+                        : 'text-secondary hover:bg-surface-hover hover:text-primary',
                 )}
             >
                 <button
@@ -135,7 +135,7 @@ export const SidebarViewItem = ({
                             : t('sidebar.expandView', {name: view.name})
                     }
                     aria-expanded={isExpanded}
-                    className="p-0.5 rounded hover:bg-surface-secondary text-muted hover:text-primary transition-colors"
+                    className="p-0.5 rounded hover:bg-surface-hover text-muted hover:text-primary transition-colors"
                 >
                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
@@ -146,15 +146,15 @@ export const SidebarViewItem = ({
                         size={14}
                         className={
                             activeView === view.name
-                                ? 'text-accent-secondary'
-                                : 'text-muted group-hover:text-accent-secondary'
+                                ? 'text-accent'
+                                : 'text-accent/70 group-hover:text-accent'
                         }
                     />
                 )}
                 <span className="truncate flex-1">{view.name}</span>
             </div>
             {isExpanded && (
-                <div className="ml-[22px] border-l border-default">
+                <div className="ml-[22px] border-l border-subtle">
                     {isLoading ? (
                         <div className="flex items-center gap-2 p-2 text-xs text-muted">
                             <Loader2 size={12} className="animate-spin" />
@@ -162,14 +162,14 @@ export const SidebarViewItem = ({
                         </div>
                     ) : (
                         <div className="flex flex-col">
-                            <div className="flex items-center gap-2 px-2 py-1 text-xs text-muted select-none">
+                            <div className="flex items-center gap-2 h-[1.6rem] px-2 text-xs text-muted rounded-sm select-none">
                                 <Folder size={12} className="text-accent/70" />
                                 <span>{t('sidebar.columns')}</span>
                                 <span className="ml-auto text-[10px] opacity-50">
                                     {columns.length}
                                 </span>
                             </div>
-                            <div className="ml-4 border-l border-default/50">
+                            <div className="ml-4 border-l border-subtle">
                                 {columns.map((col) => (
                                     <SidebarColumnItem
                                         key={col.name}

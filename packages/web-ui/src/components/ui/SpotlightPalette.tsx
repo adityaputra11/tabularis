@@ -99,7 +99,7 @@ export const SpotlightPalette = ({
             isOpen
             onClose={onClose}
             closeOnBackdrop
-            overlayClassName="fixed inset-0 z-[100] flex items-start justify-center bg-black/50 pt-[15vh] backdrop-blur-sm"
+            overlayClassName="fixed inset-0 z-[100] flex items-start justify-center bg-base/50 pt-[2.4rem] backdrop-blur-sm"
         >
             {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the dialog owns list navigation and its Tab focus trap; the rule exempts <dialog> but not role="dialog" */}
             <div
@@ -110,9 +110,9 @@ export const SpotlightPalette = ({
                 aria-label={ariaLabel}
                 aria-busy={isBusy}
                 onKeyDown={handleKeyDown}
-                className="flex max-h-[60vh] w-[min(640px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-strong bg-elevated shadow-2xl"
+                className="flex max-h-[60vh] w-[min(640px,calc(100vw-2rem))] flex-col overflow-hidden rounded-md border border-default bg-surface-secondary shadow-lg"
             >
-                <div className="flex items-center gap-3 border-b border-default bg-base px-4 py-3">
+                <div className="flex h-[2.6rem] items-center gap-3 border-b border-default bg-surface-secondary px-3">
                     {isBusy ? (
                         <Loader2 size={18} className="shrink-0 animate-spin text-accent" />
                     ) : (
@@ -120,7 +120,7 @@ export const SpotlightPalette = ({
                     )}
                     <span
                         aria-hidden="true"
-                        className="shrink-0 rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary"
+                        className="shrink-0 rounded-sm bg-surface-tertiary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-secondary"
                     >
                         {ariaLabel}
                     </span>
@@ -142,13 +142,13 @@ export const SpotlightPalette = ({
                             onSelectedIndexChange(0);
                         }}
                         placeholder={placeholder}
-                        className="min-w-0 flex-1 bg-transparent text-sm text-primary outline-none placeholder:text-muted"
+                        className="min-w-0 flex-1 bg-transparent text-sm text-primary outline-none placeholder:text-muted focus-visible:outline-none"
                     />
                     <button
                         type="button"
                         onClick={onClose}
                         aria-label={closeLabel}
-                        className="rounded p-1 text-secondary transition-colors hover:bg-surface-secondary hover:text-primary"
+                        className="rounded-sm p-1 text-secondary transition-colors hover:bg-surface-hover hover:text-primary"
                     >
                         <X size={18} />
                     </button>
@@ -156,7 +156,7 @@ export const SpotlightPalette = ({
 
                 {children}
 
-                <div className="flex justify-between border-t border-default bg-base/50 px-4 py-2 text-[11px] text-muted">
+                <div className="flex justify-between border-t border-default bg-surface-secondary px-3 py-1.5 text-[11px] text-muted">
                     {footer}
                 </div>
             </div>

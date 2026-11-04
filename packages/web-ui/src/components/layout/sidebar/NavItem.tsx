@@ -18,10 +18,10 @@ export const NavItem = ({to, icon: Icon, label, isConnected, badge, tooltip}: Na
         aria-label={tooltip ? `${label}: ${tooltip}` : label}
         className={({isActive}) =>
             clsx(
-                'flex items-center justify-center w-12 h-12 rounded-lg transition-colors mb-2 relative group',
+                'flex items-center justify-center w-9 h-9 rounded-lg transition-colors mb-1.5 relative group',
                 isActive
-                    ? 'bg-accent-primary text-inverse'
-                    : 'text-muted hover:bg-surface-secondary hover:text-primary',
+                    ? 'bg-accent-primary/15 text-accent'
+                    : 'text-muted hover:bg-surface-hover hover:text-secondary',
             )
         }
     >
@@ -29,7 +29,7 @@ export const NavItem = ({to, icon: Icon, label, isConnected, badge, tooltip}: Na
             <>
                 <RailIndicator isActive={isActive} className="-left-2" />
                 <div className="relative">
-                    <Icon size={24} />
+                    <Icon size={18} />
                     {isConnected && (
                         <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent-success border-2 border-elevated"></span>
                     )}

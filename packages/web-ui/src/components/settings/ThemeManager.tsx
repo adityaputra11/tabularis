@@ -524,7 +524,7 @@ function ThemeActionDialog({
                         maxLength={128}
                         disabled={busy}
                         onChange={(event) => setName(event.target.value)}
-                        className="block w-full bg-base border border-strong rounded-lg px-3 py-2 text-sm font-normal text-primary focus:border-focus focus:outline-none disabled:opacity-50"
+                        className="block w-full bg-input border border-strong rounded-sm px-3 h-[26px] py-0 text-xs font-normal text-primary focus:border-focus focus:outline-none disabled:opacity-50"
                     />
                 </label>
             )}

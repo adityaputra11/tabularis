@@ -480,10 +480,10 @@ export function QueryHistorySection({
                                     selectedId === entry.id
                                         ? entry.status === 'error'
                                             ? 'bg-accent-error/15'
-                                            : 'bg-surface-secondary'
+                                            : 'bg-accent-primary/15 text-primary'
                                         : entry.status === 'error'
                                           ? 'hover:bg-accent-error/10'
-                                          : 'hover:bg-surface-secondary'
+                                          : 'hover:bg-surface-hover'
                                 }`}
                                 title={
                                     entry.database ? `[${entry.database}] ${entry.sql}` : entry.sql

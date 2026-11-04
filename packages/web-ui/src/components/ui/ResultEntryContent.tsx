@@ -162,7 +162,7 @@ export function ResultEntryContent({
     return (
         <div className="flex-1 min-h-0 flex flex-col">
             {/* Status bar — a size container so it can shed detail in narrow panes */}
-            <div className="@container p-2 bg-elevated text-xs text-secondary border-b border-default flex justify-between items-center gap-2 shrink-0">
+            <div className="@container h-[2.6rem] px-3 bg-elevated text-xs text-secondary border-b border-default flex justify-between items-center gap-2 shrink-0">
                 <div className="flex items-center gap-2 @[480px]:gap-4 min-w-0">
                     <span className="truncate whitespace-nowrap">
                         {t('editor.rowsRetrieved', {
@@ -186,7 +186,7 @@ export function ResultEntryContent({
                         )}
                     </span>
                     {entry.result.pagination?.has_more && (
-                        <span className="px-2 py-0.5 bg-accent-warning/15 text-accent-warning rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-warning/50 whitespace-nowrap shrink-0">
+                        <span className="px-2 py-0.5 bg-accent-primary/15 text-accent rounded text-[10px] font-semibold uppercase tracking-wide border border-accent-primary/50 whitespace-nowrap shrink-0">
                             {t('editor.autoPaginated')}
                         </span>
                     )}

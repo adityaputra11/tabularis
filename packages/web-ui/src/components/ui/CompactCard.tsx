@@ -7,7 +7,7 @@ export function CompactCard({className, ...props}: HTMLAttributes<HTMLDivElement
         <div
             {...props}
             className={clsx(
-                'group relative flex min-w-0 flex-col rounded-2xl border transition-all duration-150 overflow-hidden',
+                'group relative flex min-w-0 flex-col rounded-lg border transition-all duration-150 overflow-hidden',
                 className,
             )}
         />
@@ -26,7 +26,7 @@ export function CompactCardHeader({
     return (
         <div className="flex items-start gap-3.5 px-4 pt-4 pb-3">
             <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md"
+                className="w-11 h-11 rounded-md flex items-center justify-center text-white shrink-0"
                 style={{backgroundColor: iconColor}}
             >
                 {icon}

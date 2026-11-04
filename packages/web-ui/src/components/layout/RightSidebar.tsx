@@ -26,7 +26,7 @@ export const RightSidebar = () => {
 
     return (
         <aside
-            className="bg-elevated border-l border-strong flex flex-col relative shrink-0 animate-slide-in-right overflow-hidden"
+            className="bg-elevated border-l border-default flex flex-col relative shrink-0 animate-slide-in-right overflow-hidden"
             style={{width: `${width}px`}}
         >
             {/* Left-edge resize handle */}

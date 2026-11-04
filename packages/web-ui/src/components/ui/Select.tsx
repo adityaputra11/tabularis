@@ -124,12 +124,12 @@ export const Select = ({
     const dropdown = isOpen && !disabled && (
         <div
             ref={dropdownRef}
-            className="fixed z-[200] bg-elevated border border-strong rounded-lg shadow-xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-[200] bg-overlay border border-default rounded-md shadow-lg flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100"
             style={dropdownPositionStyle(dropdownPosition)}
         >
             {searchable && (
-                <div className="p-2 border-b border-default bg-elevated">
-                    <div className="flex items-center gap-2 bg-base border border-strong rounded px-2 py-1.5 focus-within:border-focus transition-colors">
+                <div className="p-2 border-b border-default bg-overlay">
+                    <div className="flex h-[26px] items-center gap-2 bg-input border border-default rounded-sm px-2 focus-within:border-focus transition-colors">
                         <Search size={14} className="text-muted shrink-0" />
                         <input
                             autoCorrect="off"
@@ -173,11 +173,11 @@ export const Select = ({
                                 key={option}
                                 onClick={() => handleSelect(option)}
                                 className={clsx(
-                                    'w-full text-left py-2 pr-3 text-sm rounded transition-colors flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                                    'w-full text-left py-1.5 pr-3 text-sm rounded-sm transition-colors flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                                     depth === 0 ? 'px-3' : 'pl-0',
                                     value === option
                                         ? 'bg-accent-primary/10 text-accent font-medium'
-                                        : 'text-primary hover:bg-surface-secondary',
+                                        : 'text-primary hover:bg-surface-hover',
                                 )}
                                 title={getLabel(option)}
                             >
@@ -217,15 +217,13 @@ export const Select = ({
                 onClick={handleToggle}
                 disabled={disabled}
                 className={clsx(
-                    'w-full bg-base border rounded px-3 py-2 text-sm text-primary flex items-center justify-between transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                    'w-full h-[26px] bg-input border rounded-sm px-2 text-sm text-primary flex items-center justify-between transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                     disabled
                         ? 'opacity-50 cursor-not-allowed border-default'
                         : hasError
                           ? 'border-accent-error hover:border-accent-error'
-                          : 'border-strong hover:border-accent-primary cursor-pointer',
-                    isOpen && !disabled && !hasError
-                        ? 'border-accent-primary ring-1 ring-accent-primary'
-                        : '',
+                          : 'border-default hover:border-strong cursor-pointer',
+                    isOpen && !disabled && !hasError ? 'border-focus' : '',
                 )}
             >
                 <span

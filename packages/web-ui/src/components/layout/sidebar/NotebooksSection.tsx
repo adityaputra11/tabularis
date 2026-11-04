@@ -251,7 +251,7 @@ export function NotebooksSection({
                             e.preventDefault();
                             setContextMenu({x: e.clientX, y: e.clientY, nb});
                         }}
-                        className="pl-3 pr-2 py-1.5 cursor-pointer group transition-colors border-b border-default/30 hover:bg-surface-secondary"
+                        className="pl-3 pr-2 py-1.5 cursor-pointer group transition-colors border-b border-default/30 hover:bg-surface-hover"
                         title={nb.title}
                     >
                         {editingId === nb.id ? (
@@ -271,13 +271,13 @@ export function NotebooksSection({
                                     if (e.key === 'Escape') setEditingId(null);
                                 }}
                                 placeholder={t('sidebar.notebooks.renamePlaceholder')}
-                                className="w-full px-1.5 py-0.5 text-[13px] bg-base border border-accent-primary/50 rounded text-primary focus:outline-none"
+                                className="w-full px-1.5 py-0.5 text-sm bg-base border border-accent-primary/50 rounded text-primary focus:outline-none"
                             />
                         ) : (
                             <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                    <BookOpen size={12} className="text-accent-warning shrink-0" />
-                                    <span className="text-[13px] font-medium text-primary truncate tracking-tight">
+                                    <BookOpen size={12} className="text-accent shrink-0" />
+                                    <span className="text-sm font-medium text-primary truncate tracking-tight">
                                         {nb.title}
                                     </span>
                                     {openNotebookIds.has(nb.id) && (

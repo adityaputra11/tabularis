@@ -54,7 +54,7 @@ export const TabSwitcherModal = ({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
-                className="bg-elevated border border-strong rounded-xl shadow-2xl w-[480px] max-h-[60vh] overflow-hidden flex flex-col"
+                className="bg-elevated border border-default rounded-lg shadow-lg w-[480px] max-h-[60vh] overflow-hidden flex flex-col"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-default bg-base">
@@ -81,7 +81,7 @@ export const TabSwitcherModal = ({
                                 {tab.type === 'table' ? (
                                     <TableIcon size={14} className="text-accent shrink-0" />
                                 ) : tab.type === 'notebook' ? (
-                                    <BookOpen size={14} className="text-accent-warning shrink-0" />
+                                    <BookOpen size={14} className="text-accent shrink-0" />
                                 ) : tab.type === 'query_builder' ? (
                                     <Network size={14} className="text-accent-secondary shrink-0" />
                                 ) : (
@@ -97,7 +97,7 @@ export const TabSwitcherModal = ({
                                         onClose(tab.id);
                                     }}
                                     aria-label={t('editor.closeTab')}
-                                    className="p-0.5 rounded opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-surface-tertiary text-muted hover:text-primary transition-all shrink-0"
+                                    className="p-0.5 rounded-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-surface-hover text-muted hover:text-primary transition-all shrink-0"
                                     title={t('editor.closeTab')}
                                 >
                                     <X size={12} />

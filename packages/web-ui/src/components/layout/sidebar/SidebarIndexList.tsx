@@ -24,7 +24,7 @@ export const SidebarIndexList = ({
         <div className="flex flex-col">
             <button
                 type="button"
-                className="flex items-center gap-2 px-2 py-1 text-xs text-muted hover:text-secondary w-full text-left select-none"
+                className="flex items-center gap-2 h-[1.6rem] px-2 text-xs text-muted rounded-sm hover:text-secondary w-full text-left select-none"
                 aria-expanded={isOpen}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -37,11 +37,11 @@ export const SidebarIndexList = ({
                 <span className="ml-auto text-[10px] opacity-50">{indexes.length}</span>
             </button>
             {isOpen && (
-                <div className="ml-4 border-l border-default/50">
+                <div className="ml-4 border-l border-subtle">
                     {indexes.map((idx) => (
                         <div
                             key={idx.name}
-                            className="flex items-center gap-2 px-3 py-1 text-xs text-secondary hover:bg-surface-secondary hover:text-primary cursor-pointer group font-mono"
+                            className="flex items-center gap-2 h-[1.6rem] px-3 text-xs rounded-sm text-secondary hover:bg-surface-hover hover:text-primary cursor-pointer group font-mono"
                             title={idx.columns.join(', ')}
                             onContextMenu={
                                 onIndexContextMenu

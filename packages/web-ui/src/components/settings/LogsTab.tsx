@@ -223,7 +223,7 @@ export function LogsTab() {
                     <select
                         value={levelFilter}
                         onChange={(e) => setLevelFilter(e.target.value)}
-                        className="bg-base border border-strong rounded px-3 py-1.5 text-sm text-primary focus:outline-none focus:border-focus"
+                        className="bg-input border border-strong rounded-sm px-3 h-[26px] py-0 text-xs text-primary focus:outline-none focus:border-focus"
                     >
                         <option value="">{t('settings.allLevels')}</option>
                         <option value="DEBUG">{t('settings.debug')}</option>

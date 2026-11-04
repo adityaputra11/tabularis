@@ -36,9 +36,9 @@ export function ThemePicker({
                     aria-pressed={!value}
                     onClick={() => onChange('')}
                     className={clsx(
-                        'p-3 rounded-xl border transition-all text-left disabled:opacity-50',
+                        'p-3 rounded-md border transition-all text-left disabled:opacity-50',
                         !value
-                            ? 'bg-surface-secondary border-accent-primary shadow-sm'
+                            ? 'bg-surface-secondary border-accent-primary'
                             : 'bg-base border-default hover:border-strong',
                     )}
                 >
@@ -60,9 +60,9 @@ export function ThemePicker({
                     <div
                         key={theme.id}
                         className={clsx(
-                            'relative flex min-w-0 flex-col rounded-xl border transition-colors',
+                            'relative flex min-w-0 flex-col rounded-md border transition-colors',
                             selected
-                                ? 'bg-surface-secondary border-accent-primary shadow-sm'
+                                ? 'bg-surface-secondary border-accent-primary'
                                 : 'bg-base border-default hover:border-strong',
                         )}
                     >
@@ -74,7 +74,7 @@ export function ThemePicker({
                             aria-pressed={selected}
                             onClick={() => onChange(theme.id)}
                             className={clsx(
-                                'flex-1 rounded-xl p-3 text-left focus-visible:outline focus-visible:outline-focus disabled:cursor-not-allowed',
+                                'flex-1 rounded-md p-3 text-left focus-visible:outline focus-visible:outline-focus disabled:cursor-not-allowed',
                                 unavailable && 'opacity-45',
                                 disabled && 'opacity-50',
                             )}
