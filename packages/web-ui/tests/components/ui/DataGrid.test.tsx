@@ -4,7 +4,7 @@ import {openUrl} from '@tauri-apps/plugin-opener';
 import {createRef, useState, type ComponentProps} from 'react';
 import {vi} from 'vitest';
 import {DataGrid, type DataGridCommandTarget} from '@/components/ui/DataGrid';
-import {buildPkMap, serializePkKey, USE_DEFAULT_SENTINEL} from '@/utils/dataGrid';
+import {buildPkMap, serializePkKey, USE_DEFAULT_SENTINEL, DATA_GRID_ROW_HEIGHT} from '@/utils/dataGrid';
 import {KeybindingsContext} from '@/contexts/KeybindingsContext';
 
 vi.mock('lucide-react', async (importOriginal) => await importOriginal());
@@ -3910,9 +3910,9 @@ describe('DataGrid transposed layout (#561)', () => {
         // Pinned right under the sticky record header row.
         const frozenLabel = container.querySelector('th[scope="row"][data-col-index="0"]')!;
         expect(frozenLabel).toHaveClass('sticky');
-        expect(frozenLabel).toHaveStyle({top: '35px'});
+        expect(frozenLabel).toHaveStyle({top: `${DATA_GRID_ROW_HEIGHT}px`});
         expect(cellAt(container, 1, 0)).toHaveClass('sticky');
-        expect(cellAt(container, 1, 0)).toHaveStyle({top: '35px'});
+        expect(cellAt(container, 1, 0)).toHaveStyle({top: `${DATA_GRID_ROW_HEIGHT}px`});
         expect(cellAt(container, 1, 1)).not.toHaveClass('sticky');
 
         // The same field stays frozen as a column in the normal layout.
@@ -3963,7 +3963,7 @@ describe('DataGrid transposed layout (#561)', () => {
     it('keeps focused fields clear of the sticky record headers', () => {
         const {container} = renderTransposed();
 
-        expect(gridOf(container)).toHaveStyle({scrollPaddingTop: '35px'});
+        expect(gridOf(container)).toHaveStyle({scrollPaddingTop: `${DATA_GRID_ROW_HEIGHT}px`});
     });
 
     it('starts at the top-left after switching layouts', () => {
